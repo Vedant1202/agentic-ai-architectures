@@ -1,6 +1,144 @@
 {
   "runs": [
     {
+      "runId": "273076b0-5ec5-448d-bc01-49e62a779e54",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "hybrid_verification_01",
+      "taskLabel": "Authentication Patch With Independent Verification",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T21:47:48.896Z",
+      "durationMs": 144144,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "partial",
+      "tokens": {
+        "input": 2561,
+        "output": 7242,
+        "reasoning": 4957,
+        "total": 9803
+      },
+      "resources": {
+        "cpuAvgPct": 0.9,
+        "cpuPeakPct": 16.1,
+        "rssPeakMb": 49.6,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 6,
+        "testsFailed": 1,
+        "rubricScore": 0.74,
+        "regressionCount": 1,
+        "criteriaMet": 3,
+        "criteriaTotal": 5,
+        "confidenceScore": 0.68,
+        "compositeScore": 0.6,
+        "verificationMode": "judge_only",
+        "rationale": "Single-agent run covered the basics but missed one edge case."
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Authentication Patch With Independent Verification.\\nIntermittent authentication bug during token refresh\"}][{\"thought\":true,\"type\":\"text\",\"text\":\" under clock skew and network retry conditions.\\n\\n  …"
+    },
+    {
+      "runId": "c5a18872-60c1-4d99-87fa-f3849b6235ca",
+      "tool": "langgraph-gemini",
+      "architecture": "decentralized",
+      "taskId": "hybrid_verification_01",
+      "taskLabel": "Authentication Patch With Independent Verification",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T21:47:48.997Z",
+      "durationMs": 115582,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 13503,
+        "output": 8421,
+        "reasoning": 904,
+        "total": 21924
+      },
+      "resources": {
+        "cpuAvgPct": 1,
+        "cpuPeakPct": 18.7,
+        "rssPeakMb": 49.6,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 3,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "..."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 1,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Peer C merged the independent proposals. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]### Final Synthesis: Authentication Patch with Independent Verification\n\n#### 1. Diagnosis\nThe intermittent authentication failure is a **Refresh Token Rotation (RTR) Race Condition** triggered by …"
+    },
+    {
+      "runId": "cf28924e-e22a-4ac2-bcd9-cd2569da088c",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "hybrid_verification_01",
+      "taskLabel": "Authentication Patch With Independent Verification",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T21:47:48.987Z",
+      "durationMs": 114447,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 11804,
+        "output": 8948,
+        "reasoning": 684,
+        "total": 20752
+      },
+      "resources": {
+        "cpuAvgPct": 1,
+        "cpuPeakPct": 18.6,
+        "rssPeakMb": 49.6,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 3,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "The response is comprehensive and meets all five checklist criteria. It identifies a highly plausible root cause (RTR vs network failure/clock skew), proposes a concrete technical patch (idempotent grace period and atomic updates), includes a robust verification plan (network simulation and concurrency testing), covers edge cases like retry timing, and identifies residual risks such as the expanded attack window and database complexity."
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the hybrid run. -> Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]### Final Synthesis: Authentication Patch & Verification\n\n**Diagnosis**\nThe root cause is a **collision between Refresh Token Rotation (RTR) security and network unreliability**. When a client init…"
+    },
+    {
       "runId": "f0849a50-9406-4fa6-8422-f8f11e5af8b3",
       "tool": "langgraph-gemini",
       "architecture": "hybrid",

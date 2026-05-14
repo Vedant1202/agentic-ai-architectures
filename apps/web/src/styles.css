@@ -732,6 +732,7 @@ input:focus {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 18px;
+  align-items: start;
 }
 
 .run-card {
@@ -1032,6 +1033,56 @@ input:focus {
   gap: 18px;
   padding: 18px 0 4px;
   border-top: 1px solid var(--panel-border);
+}
+
+/* Section header with compact pill summary */
+.metric-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.metric-section-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.metric-section-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  background: var(--surface-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.metric-pill__label {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+}
+
+.metric-pill strong {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-pill__pending {
+  color: var(--text-secondary);
+  font-weight: 400;
 }
 
 .react-flow__controls-button {

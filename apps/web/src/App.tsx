@@ -860,32 +860,6 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
 
       <div className="chart-grid">
         <MetricBarChart
-          title="Peak CPU"
-          subtitle="Maximum sampled CPU percentage during each run"
-          data={comparisonData.map((item) => ({
-            label: item.label,
-            color: item.color,
-            cpuPeakPct: item.cpuPeakPct
-          }))}
-          dataKey="cpuPeakPct"
-          valueFormatter={(value) => `${value.toFixed(1)}%`}
-          axisFormatter={(value) => `${Math.round(value)}%`}
-        />
-
-        <MetricBarChart
-          title="Peak Memory"
-          subtitle="Highest resident set size observed per architecture"
-          data={comparisonData.map((item) => ({
-            label: item.label,
-            color: item.color,
-            rssPeakMb: item.rssPeakMb
-          }))}
-          dataKey="rssPeakMb"
-          valueFormatter={(value) => `${value.toFixed(0)} MB`}
-          axisFormatter={(value) => `${Math.round(value)} MB`}
-        />
-
-        <MetricBarChart
           title="Judge Score"
           subtitle="Evaluator model's holistic rubric score per architecture (post-run)"
           data={comparisonData.map((item) => ({
@@ -1028,8 +1002,28 @@ function ArchitectureRunCard({
       {expanded && (
         <div className="run-card__expanded">
           <div className="metric-table-section">
-            <div className="metric-table-heading">In-Task Execution</div>
-            <p className="metric-table-note">These metrics update live as the run progresses.</p>
+            <div className="metric-section-header">
+              <span className="metric-section-title">In-Task Execution</span>
+              <div className="metric-section-pills">
+                <span className="metric-pill">
+                  <span className="metric-pill__label">Tokens</span>
+                  <strong>{summary.tokens > 0 ? formatCompact(summary.tokens) : dash}</strong>
+                  {isRunning && <span className="live-badge">live</span>}
+                </span>
+                <span className="metric-pill">
+                  <span className="metric-pill__label">Duration</span>
+                  <strong>{summary.durationMs > 0 ? formatDuration(summary.durationMs) : "—"}</strong>
+                </span>
+                <span className="metric-pill">
+                  <span className="metric-pill__label">Calls</span>
+                  <strong>{summary.toolCalls}</strong>
+                </span>
+                <span className="metric-pill">
+                  <span className="metric-pill__label">Handoffs</span>
+                  <strong>{summary.handoffs}</strong>
+                </span>
+              </div>
+            </div>
             <table className="metric-table">
               <tbody>
                 <MetricRow label="Total tokens" value={summary.tokens > 0 ? formatCompact(summary.tokens) : dash} note={isRunning ? "Updating live" : undefined} />
@@ -1037,17 +1031,45 @@ function ArchitectureRunCard({
                 <MetricRow label="Duration" value={summary.durationMs > 0 ? formatDuration(summary.durationMs) : "Streaming"} />
                 <MetricRow label="Model calls" value={summary.toolCalls.toString()} note="Total LLM invocations" />
                 <MetricRow label="Agent handoffs" value={summary.handoffs.toString()} note="Inter-agent delegations" />
-                <MetricRow label="Peak CPU" value={`${summary.cpuPeakPct.toFixed(1)}%`} />
-                <MetricRow label="Peak memory (RSS)" value={`${summary.rssPeakMb.toFixed(0)} MB`} />
               </tbody>
             </table>
           </div>
 
           <div className="metric-table-section">
-            <div className="metric-table-heading">Post-Completion Evaluation</div>
-            {evalPending ? (
-              <p className="metric-table-note">Computed by the evaluator model after the run finishes.</p>
-            ) : null}
+            <div className="metric-section-header">
+              <span className="metric-section-title">Post-Completion Evaluation</span>
+              <div className="metric-section-pills">
+                <span className="metric-pill">
+                  <span className="metric-pill__label">Judge</span>
+                  <strong className={isComplete ? "" : "metric-pill__pending"}>
+                    {isComplete ? formatPercent(summary.judgeScore) : dash}
+                  </strong>
+                </span>
+                <span className="metric-pill">
+                  <span className="metric-pill__label">Criteria</span>
+                  <strong className={isComplete ? "" : "metric-pill__pending"}>
+                    {isComplete ? formatPercent(summary.criteriaCoverage) : dash}
+                  </strong>
+                </span>
+                <span className="metric-pill">
+                  <span className="metric-pill__label">Confidence</span>
+                  <strong className={isComplete ? "" : "metric-pill__pending"}>
+                    {isComplete ? formatPercent(summary.confidenceScore) : dash}
+                  </strong>
+                </span>
+                <span className="metric-pill">
+                  <span className="metric-pill__label">Reliability</span>
+                  <strong className={isComplete ? "" : "metric-pill__pending"}>
+                    {isComplete
+                      ? (summary.testsPassed + summary.testsFailed > 0
+                        ? formatPercent((summary.testsPassed / (summary.testsPassed + summary.testsFailed)) * 100)
+                        : "100%")
+                      : dash}
+                  </strong>
+                </span>
+                {!isComplete && <span className="eval-pending-badge">Post-run</span>}
+              </div>
+            </div>
             <table className="metric-table">
               <tbody>
                 <MetricRow
