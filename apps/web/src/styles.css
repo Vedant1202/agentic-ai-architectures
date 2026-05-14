@@ -998,22 +998,40 @@ input:focus {
   overflow: hidden;
 }
 
-.run-card__details {
-  border-top: 1px solid var(--panel-border);
-  padding-top: 12px;
-}
-
-.run-card__details summary {
-  cursor: pointer;
-  color: var(--text-soft);
+.run-card__details-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: var(--surface-muted);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
   font-weight: 600;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+  text-align: left;
 }
 
-.run-card__details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-  gap: 10px;
-  margin: 12px 0 14px;
+.run-card__details-toggle:hover {
+  border-color: rgba(96, 165, 250, 0.3);
+  color: var(--text-primary);
+  background: rgba(96, 165, 250, 0.05);
+}
+
+.details-toggle-icon {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.run-card__expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px 0 4px;
+  border-top: 1px solid var(--panel-border);
 }
 
 .react-flow__controls-button {

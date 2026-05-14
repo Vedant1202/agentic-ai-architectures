@@ -886,14 +886,28 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
         />
 
         <MetricBarChart
-          title="Composite Quality Index"
-          subtitle="Primary comparison score for live runs"
+          title="Judge Score"
+          subtitle="Evaluator model's holistic rubric score per architecture (post-run)"
           data={comparisonData.map((item) => ({
             label: item.label,
             color: item.color,
-            score: item.score
+            judgeScore: item.judgeScore
           }))}
-          dataKey="score"
+          dataKey="judgeScore"
+          valueFormatter={formatPercent}
+          axisFormatter={(value) => `${Math.round(value)}%`}
+          domain={[0, 100]}
+        />
+
+        <MetricBarChart
+          title="Criteria Coverage"
+          subtitle="Fraction of task evaluation checklist satisfied (post-run)"
+          data={comparisonData.map((item) => ({
+            label: item.label,
+            color: item.color,
+            criteriaCoverage: item.criteriaCoverage
+          }))}
+          dataKey="criteriaCoverage"
           valueFormatter={formatPercent}
           axisFormatter={(value) => `${Math.round(value)}%`}
           domain={[0, 100]}
@@ -901,7 +915,7 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
 
         <MetricBarChart
           title="Total Token Usage"
-          subtitle="Total tokens consumed per architecture"
+          subtitle="Total tokens consumed per architecture (live)"
           data={comparisonData.map((item) => ({
             label: item.label,
             color: item.color,
@@ -910,6 +924,32 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
           dataKey="tokens"
           valueFormatter={formatCompact}
           axisFormatter={(value) => formatCompact(value)}
+        />
+
+        <MetricBarChart
+          title="Agent Handoffs"
+          subtitle="Inter-agent delegations during execution (live)"
+          data={comparisonData.map((item) => ({
+            label: item.label,
+            color: item.color,
+            handoffs: item.handoffs
+          }))}
+          dataKey="handoffs"
+          valueFormatter={(value) => `${Math.round(value)}`}
+          axisFormatter={(value) => `${Math.round(value)}`}
+        />
+
+        <MetricBarChart
+          title="Model Calls"
+          subtitle="Total LLM invocations per architecture (live)"
+          data={comparisonData.map((item) => ({
+            label: item.label,
+            color: item.color,
+            toolCalls: item.toolCalls
+          }))}
+          dataKey="toolCalls"
+          valueFormatter={(value) => `${Math.round(value)}`}
+          axisFormatter={(value) => `${Math.round(value)}`}
         />
       </div>
     </div>
@@ -927,10 +967,9 @@ function ArchitectureRunCard({
   const recentTrace = run.trace.slice(-4).reverse();
   const isComplete = summary.status === "complete";
   const isRunning = summary.status === "running";
-
-  // Post-run metrics: only available after evaluate() fires
   const evalPending = !isComplete;
   const dash = "—";
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <article
@@ -976,91 +1015,102 @@ function ArchitectureRunCard({
         <span>{run.trace.at(-1) ?? "Waiting for execution trace…"}</span>
       </div>
 
-      {/* Expandable details */}
-      <details className="run-card__details">
-        <summary>Show detailed metrics</summary>
+      {/* Expandable details toggle */}
+      <button
+        className="run-card__details-toggle"
+        onClick={() => setExpanded((prev) => !prev)}
+        aria-expanded={expanded}
+      >
+        {expanded ? "Hide metrics" : "Show detailed metrics"}
+        <span className="details-toggle-icon">{expanded ? "▴" : "▾"}</span>
+      </button>
 
-        <div className="metric-table-section">
-          <div className="metric-table-heading">Evaluation scores</div>
-          {evalPending && (
-            <p className="metric-table-note">These scores are computed by the evaluator after the run finishes.</p>
+      {expanded && (
+        <div className="run-card__expanded">
+          <div className="metric-table-section">
+            <div className="metric-table-heading">In-Task Execution</div>
+            <p className="metric-table-note">These metrics update live as the run progresses.</p>
+            <table className="metric-table">
+              <tbody>
+                <MetricRow label="Total tokens" value={summary.tokens > 0 ? formatCompact(summary.tokens) : dash} note={isRunning ? "Updating live" : undefined} />
+                <MetricRow label="Output / input ratio" value={`${summary.outputRatio.toFixed(2)}×`} note="Generated tokens ÷ prompt tokens" />
+                <MetricRow label="Duration" value={summary.durationMs > 0 ? formatDuration(summary.durationMs) : "Streaming"} />
+                <MetricRow label="Model calls" value={summary.toolCalls.toString()} note="Total LLM invocations" />
+                <MetricRow label="Agent handoffs" value={summary.handoffs.toString()} note="Inter-agent delegations" />
+                <MetricRow label="Peak CPU" value={`${summary.cpuPeakPct.toFixed(1)}%`} />
+                <MetricRow label="Peak memory (RSS)" value={`${summary.rssPeakMb.toFixed(0)} MB`} />
+              </tbody>
+            </table>
+          </div>
+
+          <div className="metric-table-section">
+            <div className="metric-table-heading">Post-Completion Evaluation</div>
+            {evalPending ? (
+              <p className="metric-table-note">Computed by the evaluator model after the run finishes.</p>
+            ) : null}
+            <table className="metric-table">
+              <tbody>
+                <MetricRow
+                  label="Judge score"
+                  value={isComplete ? formatPercent(summary.judgeScore) : dash}
+                  note="Holistic rubric (0–100%)"
+                />
+                <MetricRow
+                  label="Criteria coverage"
+                  value={isComplete ? formatPercent(summary.criteriaCoverage) : dash}
+                  note="Task checklist satisfied"
+                />
+                <MetricRow
+                  label="Evaluator confidence"
+                  value={isComplete ? formatPercent(summary.confidenceScore) : dash}
+                  note="Evaluator certainty in judgment"
+                />
+                <MetricRow
+                  label="Test reliability"
+                  value={isComplete
+                    ? (summary.testsPassed + summary.testsFailed > 0
+                      ? formatPercent((summary.testsPassed / (summary.testsPassed + summary.testsFailed)) * 100)
+                      : "100%")
+                    : dash}
+                  note={isComplete ? `${summary.testsPassed} passed, ${summary.testsFailed} failed` : "Available post-run"}
+                />
+                <MetricRow label="Outcome" value={isComplete ? summary.outcome : dash} />
+                <MetricRow label="Eval mode" value={formatVerificationMode(summary.verificationMode)} />
+              </tbody>
+            </table>
+          </div>
+
+          {summary.rationale && (
+            <div className="metric-table-section">
+              <div className="metric-table-heading">Evaluator rationale</div>
+              <p className="metric-rationale">{summary.rationale}</p>
+            </div>
           )}
-          <table className="metric-table">
-            <tbody>
-              <MetricRow label="Composite index" value={isComplete ? formatPercent(summary.score) : "—"} note={isComplete ? "= 0.45·J + 0.25·C + 0.15·Conf + 0.15·T" : "Available post-run"} />
-              <MetricRow label="Judge score (J)" value={isComplete ? formatPercent(summary.judgeScore) : "—"} note="Holistic rubric from evaluator model" />
-              <MetricRow label="Criteria coverage (C)" value={isComplete ? formatPercent(summary.criteriaCoverage) : "—"} note="Fraction of task checklist satisfied" />
-              <MetricRow label="Confidence (Conf)" value={isComplete ? formatPercent(summary.confidenceScore) : "—"} note="Evaluator certainty in its own judgment" />
-              <MetricRow
-                label="Test reliability (T)"
-                value={isComplete
-                  ? (summary.testsPassed + summary.testsFailed > 0
-                    ? formatPercent((summary.testsPassed / (summary.testsPassed + summary.testsFailed)) * 100)
-                    : "100%")
-                  : "—"}
-                note={isComplete
-                  ? `${summary.testsPassed} passed, ${summary.testsFailed} failed`
-                  : "Available post-run"}
-              />
-              <MetricRow label="Outcome" value={isComplete ? summary.outcome : "—"} />
-              <MetricRow label="Eval mode" value={formatVerificationMode(summary.verificationMode)} />
-            </tbody>
-          </table>
-        </div>
 
-        <div className="metric-table-section">
-          <div className="metric-table-heading">Token &amp; efficiency</div>
-          <table className="metric-table">
-            <tbody>
-              <MetricRow label="Total tokens" value={summary.tokens > 0 ? formatCompact(summary.tokens) : "—"} note={isRunning ? "Updating live" : undefined} />
-              <MetricRow label="Input / output ratio" value={`${summary.outputRatio.toFixed(2)}×`} />
-              <MetricRow label="Duration" value={summary.durationMs > 0 ? formatDuration(summary.durationMs) : "Streaming"} />
-              <MetricRow label="Model calls" value={summary.toolCalls.toString()} />
-            </tbody>
-          </table>
-        </div>
+          {run.errorDetails && (
+            <div className="metric-table-section">
+              <div className="metric-table-heading error-heading">{formatLiveErrorTitle(run.errorDetails)}</div>
+              <p className="metric-table-note">{run.errorDetails.message}</p>
+              {run.errorDetails.nodeLabel && (
+                <p className="metric-table-note">Active node: {run.errorDetails.nodeLabel}</p>
+              )}
+            </div>
+          )}
 
-        <div className="metric-table-section">
-          <div className="metric-table-heading">Coordination</div>
-          <table className="metric-table">
-            <tbody>
-              <MetricRow label="Agent handoffs" value={summary.handoffs.toString()} />
-              <MetricRow label="Peak CPU" value={`${summary.cpuPeakPct.toFixed(1)}%`} />
-              <MetricRow label="Peak memory (RSS)" value={`${summary.rssPeakMb.toFixed(0)} MB`} />
-            </tbody>
-          </table>
-        </div>
-
-        {summary.rationale && (
           <div className="metric-table-section">
-            <div className="metric-table-heading">Evaluator rationale</div>
-            <p className="metric-rationale">{summary.rationale}</p>
-          </div>
-        )}
-
-        {run.errorDetails && (
-          <div className="metric-table-section">
-            <div className="metric-table-heading error-heading">{formatLiveErrorTitle(run.errorDetails)}</div>
-            <p className="metric-table-note">{run.errorDetails.message}</p>
-            {run.errorDetails.nodeLabel && (
-              <p className="metric-table-note">Active node: {run.errorDetails.nodeLabel}</p>
-            )}
-          </div>
-        )}
-
-        <div className="metric-table-section">
-          <div className="metric-table-heading">Execution trace</div>
-          <div className="trace-feed">
-            {recentTrace.length > 0 ? (
-              recentTrace.map((line, index) => (
-                <div key={`${summary.architecture}-${index}`} className="trace-item">{line}</div>
-              ))
-            ) : (
-              <div className="trace-item trace-item-muted">No trace events yet.</div>
-            )}
+            <div className="metric-table-heading">Execution trace</div>
+            <div className="trace-feed">
+              {recentTrace.length > 0 ? (
+                recentTrace.map((line, index) => (
+                  <div key={`${summary.architecture}-${index}`} className="trace-item">{line}</div>
+                ))
+              ) : (
+                <div className="trace-item trace-item-muted">No trace events yet.</div>
+              )}
+            </div>
           </div>
         </div>
-      </details>
+      )}
     </article>
   );
 }
