@@ -9,6 +9,7 @@ import type {
   BenchmarkRunResponse,
   BenchmarkTaskDefinition,
   ExperimentRun,
+  LiveProgressSnapshot,
   LiveUpdate,
   NodeTraceEvent,
   Outcome,
@@ -59,16 +60,33 @@ export async function runBenchmark(
 ): Promise<BenchmarkRunResponse> {
   const runtime = createRuntime();
   const startedAt = new Date().toISOString();
+  const startedAtMs = Date.now();
   const trace: string[] = [];
+  const emitProgress = (snapshot: LiveProgressSnapshot) => {
+    onUpdate?.({ architecture: request.architecture, type: "progress", data: snapshot });
+  };
 
   const sampled = await sampleProcessUsage(async () => {
-    const graph = buildArchitectureGraph(request.architecture, runtime, trace, onUpdate);
+    const graph = buildArchitectureGraph(
+      request.architecture,
+      runtime,
+      trace,
+      startedAtMs,
+      emitProgress,
+      onUpdate
+    );
     const finalState = await graph.invoke({
       taskPrompt: request.customPrompt || task.prompt,
       taskLabel: request.customPrompt ? "Custom Task" : task.label,
       architecture: request.architecture
     });
     const evaluation = await evaluateRun(runtime, task, finalState.finalAnswer, request.architecture);
+    emitProgress({
+      elapsedMs: Date.now() - startedAtMs,
+      handoffs: finalState.handoffs,
+      toolCalls: runtime.getCallCount(),
+      tokens: runtime.getTokenMetrics()
+    });
     return { finalState, evaluation };
   }, onUpdate ? (resources) => onUpdate({ architecture: request.architecture, type: "metrics", data: resources }) : undefined);
 
@@ -102,25 +120,45 @@ function buildArchitectureGraph(
   architecture: ArchitectureName,
   runtime: Runtime,
   trace: string[],
+  startedAtMs: number,
+  onProgress: (snapshot: LiveProgressSnapshot) => void,
   onUpdate?: (update: LiveUpdate) => void
 ) {
   const builder = new StateGraph(GraphState) as any;
+  let currentHandoffs = 0;
+
+  const emitProgress = (tokens = runtime.getTokenMetrics()) => {
+    onProgress({
+      elapsedMs: Date.now() - startedAtMs,
+      handoffs: currentHandoffs,
+      toolCalls: runtime.getCallCount(),
+      tokens
+    });
+  };
 
   const emitTrace = (line: string) => {
     trace.push(line);
     if (onUpdate) {
       onUpdate({ architecture, type: "trace", data: line });
     }
+    emitProgress();
   };
 
   const emitNodeEvent = (event: NodeTraceEvent) => {
     if (onUpdate) {
       onUpdate({ architecture, type: "node_event", data: event });
     }
+    emitProgress();
+  };
+
+  const recordHandoffs = (count: number) => {
+    currentHandoffs += count;
+    emitProgress();
   };
 
   const planNode = async (state: typeof GraphState.State) => {
     emitNodeEvent({ node: "plan", label: "Planner", status: "running" });
+    emitTrace("Planner started.");
     const startTokens = runtime.getTokenMetrics().total;
 
     const plannerBrief = await runtime.generateTextStream(
@@ -130,7 +168,8 @@ function buildArchitectureGraph(
         "Summarize the approach in 3 bullets, explicitly naming what should be delegated."
       ].join(" "),
       taskBlock(state.taskLabel, state.taskPrompt),
-      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "plan", text } })
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "plan", text } }),
+      (tokens) => emitProgress(tokens)
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -138,6 +177,7 @@ function buildArchitectureGraph(
 
     const line = `Planner framed the ${labelForArchitecture(state.architecture)} run.`;
     emitTrace(line);
+    recordHandoffs(1);
     return {
       plannerBrief,
       trace: [line],
@@ -148,6 +188,7 @@ function buildArchitectureGraph(
 
   const researchNode = async (state: typeof GraphState.State) => {
     emitNodeEvent({ node: "research", label: "Researcher", status: "running" });
+    emitTrace("Researcher started.");
     const startTokens = runtime.getTokenMetrics().total;
 
     const researchNotes = await runtime.generateTextStream(
@@ -158,7 +199,8 @@ function buildArchitectureGraph(
         "Be concise but specific."
       ].join(" "),
       [taskBlock(state.taskLabel, state.taskPrompt), `Planner brief:\n${state.plannerBrief}`].join("\n\n"),
-      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "research", text } })
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "research", text } }),
+      (tokens) => emitProgress(tokens)
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -166,6 +208,7 @@ function buildArchitectureGraph(
 
     const line = "Research specialist mapped risks and diagnostics.";
     emitTrace(line);
+    recordHandoffs(1);
     return {
       researchNotes,
       trace: [line],
@@ -176,6 +219,7 @@ function buildArchitectureGraph(
 
   const implementNode = async (state: typeof GraphState.State) => {
     emitNodeEvent({ node: "implement", label: "Implementer", status: "running" });
+    emitTrace("Implementer started.");
     const startTokens = runtime.getTokenMetrics().total;
 
     const implementationPlan = await runtime.generateTextStream(
@@ -190,7 +234,8 @@ function buildArchitectureGraph(
         `Planner brief:\n${state.plannerBrief}`,
         `Research notes:\n${state.researchNotes}`
       ].join("\n\n"),
-      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "implement", text } })
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "implement", text } }),
+      (tokens) => emitProgress(tokens)
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -198,6 +243,7 @@ function buildArchitectureGraph(
 
     const line = "Implementation specialist proposed code and test changes.";
     emitTrace(line);
+    recordHandoffs(1);
     return {
       implementationPlan,
       trace: [line],
@@ -208,6 +254,7 @@ function buildArchitectureGraph(
 
   const reviewNode = async (state: typeof GraphState.State) => {
     emitNodeEvent({ node: "review", label: "Verifier", status: "running" });
+    emitTrace("Verifier started.");
     const startTokens = runtime.getTokenMetrics().total;
 
     const reviewNotes = await runtime.generateTextStream(
@@ -220,7 +267,8 @@ function buildArchitectureGraph(
         taskBlock(state.taskLabel, state.taskPrompt),
         `Implementation plan:\n${state.implementationPlan}`
       ].join("\n\n"),
-      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "review", text } })
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "review", text } }),
+      (tokens) => emitProgress(tokens)
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -228,6 +276,7 @@ function buildArchitectureGraph(
 
     const line = "Verifier reviewed the proposed solution for gaps.";
     emitTrace(line);
+    recordHandoffs(1);
     return {
       reviewNotes,
       trace: [line],
@@ -238,13 +287,15 @@ function buildArchitectureGraph(
 
   const peerANode = async (state: typeof GraphState.State) => {
     emitNodeEvent({ node: "peer_a", label: "Peer A", status: "running" });
+    emitTrace("Peer A started.");
     const startTokens = runtime.getTokenMetrics().total;
 
     const implementationPlan = await runtime.generateTextStream(
       "peer_a",
       "You are peer A in an decentralized benchmark. Produce an independent solution sketch.",
       taskBlock(state.taskLabel, state.taskPrompt),
-      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_a", text } })
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_a", text } }),
+      (tokens) => emitProgress(tokens)
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -252,6 +303,7 @@ function buildArchitectureGraph(
 
     const line = "Peer A created an independent solution sketch.";
     emitTrace(line);
+    recordHandoffs(1);
     return {
       implementationPlan,
       trace: [line],
@@ -262,13 +314,15 @@ function buildArchitectureGraph(
 
   const peerBNode = async (state: typeof GraphState.State) => {
     emitNodeEvent({ node: "peer_b", label: "Peer B", status: "running" });
+    emitTrace("Peer B started.");
     const startTokens = runtime.getTokenMetrics().total;
 
     const researchNotes = await runtime.generateTextStream(
       "peer_b",
       "You are peer B in an decentralized benchmark. Produce an alternative diagnosis and tests.",
       taskBlock(state.taskLabel, state.taskPrompt),
-      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_b", text } })
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_b", text } }),
+      (tokens) => emitProgress(tokens)
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -276,6 +330,7 @@ function buildArchitectureGraph(
 
     const line = "Peer B created an alternative diagnosis and test lens.";
     emitTrace(line);
+    recordHandoffs(1);
     return {
       researchNotes,
       trace: [line],
@@ -286,6 +341,7 @@ function buildArchitectureGraph(
 
   const peerMergeNode = async (state: typeof GraphState.State) => {
     emitNodeEvent({ node: "peer_merge", label: "Peer C (Merge)", status: "running" });
+    emitTrace("Peer merge started.");
     const startTokens = runtime.getTokenMetrics().total;
 
     const reviewNotes = await runtime.generateTextStream(
@@ -299,7 +355,8 @@ function buildArchitectureGraph(
         `Peer A:\n${state.implementationPlan}`,
         `Peer B:\n${state.researchNotes}`
       ].join("\n\n"),
-      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_merge", text } })
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_merge", text } }),
+      (tokens) => emitProgress(tokens)
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -307,6 +364,7 @@ function buildArchitectureGraph(
 
     const line = "Peer C merged the independent proposals.";
     emitTrace(line);
+    recordHandoffs(2);
     return {
       reviewNotes,
       trace: [line],
@@ -317,6 +375,7 @@ function buildArchitectureGraph(
 
   const finalizeNode = async (state: typeof GraphState.State) => {
     emitNodeEvent({ node: "finalize", label: "Finalizer", status: "running" });
+    emitTrace("Finalizer started.");
     const startTokens = runtime.getTokenMetrics().total;
 
     const finalAnswer = await runtime.generateTextStream(
@@ -334,7 +393,8 @@ function buildArchitectureGraph(
       ]
         .filter(Boolean)
         .join("\n\n"),
-      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "finalize", text } })
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "finalize", text } }),
+      (tokens) => emitProgress(tokens)
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -444,19 +504,22 @@ function buildArchitectureGraph(
     case "dynamic_swarm":
       builder.addNode("manager", async (state: typeof GraphState.State) => {
         emitNodeEvent({ node: "manager", label: "Swarm Manager", status: "running" });
+        emitTrace("Swarm manager started.");
         const startTokens = runtime.getTokenMetrics().total;
         
         const managerBrief = await runtime.generateTextStream(
           "planner", 
           "You are the swarm manager. Describe the sub-agents needed.",
           taskBlock(state.taskLabel, state.taskPrompt),
-          (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "manager", text } })
+          (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "manager", text } }),
+          (tokens) => emitProgress(tokens)
         );
 
         const subagents = ["DB Expert", "UI Specialist", "Security Auditor"];
         
         const tokensUsed = runtime.getTokenMetrics().total - startTokens;
         emitNodeEvent({ node: "manager", label: "Swarm Manager", status: "complete", output: managerBrief, tokens: tokensUsed });
+        recordHandoffs(3);
 
         const subAnswers: string[] = [];
         await Promise.all(subagents.map(async (agentLabel, index) => {
@@ -464,13 +527,15 @@ function buildArchitectureGraph(
           onUpdate?.({ architecture, type: "graph_edge", data: { source: "manager", target: nodeId } });
           
           emitNodeEvent({ node: nodeId, label: agentLabel, status: "running" });
+          emitTrace(`${agentLabel} started.`);
           const subTokens = runtime.getTokenMetrics().total;
           
           const ans = await runtime.generateTextStream(
             "researcher",
             `You are ${agentLabel}. Solve your part.`,
             taskBlock(state.taskLabel, state.taskPrompt),
-            (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: nodeId, text } })
+            (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: nodeId, text } }),
+            (tokens) => emitProgress(tokens)
           );
 
           const used = runtime.getTokenMetrics().total - subTokens;
@@ -571,9 +636,11 @@ class Runtime {
     role: string,
     systemPrompt: string,
     userPrompt: string,
-    onChunk: (text: string) => void
+    onChunk: (text: string) => void,
+    onProgress?: (tokens: ReturnType<Runtime["getTokenMetrics"]>) => void
   ) {
     this.calls += 1;
+    const inputEstimate = estimateTokens(systemPrompt) + estimateTokens(userPrompt);
 
     if (!this.model) {
       const text = buildSimulatedResponse(role, userPrompt);
@@ -582,6 +649,7 @@ class Runtime {
       for (const word of words) {
         current += (current ? " " : "") + word;
         onChunk(current);
+        onProgress?.(this.buildUsageEstimate(inputEstimate, current));
         await new Promise(r => setTimeout(r, 25)); // Smooth fake streaming
       }
       this.usage.input += estimateTokens(systemPrompt) + estimateTokens(userPrompt);
@@ -601,12 +669,14 @@ class Runtime {
         if (chunk.content) {
           fullText += typeof chunk.content === "string" ? chunk.content : JSON.stringify(chunk.content);
           onChunk(fullText);
+          onProgress?.(this.buildUsageEstimate(inputEstimate, fullText));
         }
       }
     } catch (err) {
       console.error("Gemini API stream error:", err);
       fullText = "[API Error: Rate limit or connectivity issue. Reverting to fallback for this node.]";
       onChunk(fullText);
+      onProgress?.(this.buildUsageEstimate(inputEstimate, fullText));
     }
     
     this.usage.input += estimateTokens(systemPrompt) + estimateTokens(userPrompt);
@@ -687,6 +757,16 @@ class Runtime {
     this.usage.output += usage?.output_tokens ?? 0;
     this.usage.reasoning += usage?.output_token_details?.reasoning ?? 0;
     this.usage.total += usage?.total_tokens ?? (usage?.input_tokens ?? 0) + (usage?.output_tokens ?? 0);
+  }
+
+  private buildUsageEstimate(inputDelta: number, streamedText: string) {
+    const outputDelta = estimateTokens(streamedText);
+    return {
+      input: this.usage.input + inputDelta,
+      output: this.usage.output + outputDelta,
+      reasoning: this.usage.reasoning,
+      total: this.usage.input + inputDelta + this.usage.output + outputDelta + this.usage.reasoning
+    };
   }
 }
 

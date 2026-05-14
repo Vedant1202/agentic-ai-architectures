@@ -15,6 +15,7 @@ import {
   type BenchmarkTaskDefinition,
   type DatasetOverviewResponse,
   type ExperimentRun,
+  type LiveProgressSnapshot,
   type LiveUpdate,
   type NodeTraceEvent
 } from "@agent-visibility/shared";
@@ -37,6 +38,7 @@ interface LiveRunState {
     cpuPeakPct: number;
     rssPeakMb: number;
   };
+  progress: LiveProgressSnapshot;
   result?: ExperimentRun;
 }
 
@@ -196,7 +198,13 @@ export default function App() {
         trace: [],
         nodeEvents: {},
         dynamicEdges: [],
-        metrics: { cpuAvgPct: 0, cpuPeakPct: 0, rssPeakMb: 0 }
+        metrics: { cpuAvgPct: 0, cpuPeakPct: 0, rssPeakMb: 0 },
+        progress: {
+          elapsedMs: 0,
+          handoffs: 0,
+          toolCalls: 0,
+          tokens: { input: 0, output: 0, reasoning: 0, total: 0 }
+        }
       };
     });
     setLiveRuns(initialLiveRuns);
@@ -306,12 +314,28 @@ export default function App() {
           };
         }
 
+        if (update.type === "progress") {
+          return {
+            ...current,
+            [update.architecture]: {
+              ...existing,
+              progress: update.data as LiveProgressSnapshot
+            }
+          };
+        }
+
         if (update.type === "complete") {
           return {
             ...current,
             [update.architecture]: {
               ...existing,
               status: "complete",
+              progress: {
+                elapsedMs: (update.data as ExperimentRun).durationMs,
+                handoffs: (update.data as ExperimentRun).coordination.handoffs,
+                toolCalls: (update.data as ExperimentRun).resources.toolCallCount,
+                tokens: (update.data as ExperimentRun).tokens
+              },
               result: update.data as ExperimentRun
             }
           };
@@ -1155,8 +1179,9 @@ function buildLiveComparisonData(liveRuns: Record<string, LiveRunState>) {
   return runs.map((run) => {
     const definition = getArchitectureDefinition(run.architecture);
     const result = run.result;
-    const inputTokens = result?.tokens.input ?? 0;
-    const outputTokens = result?.tokens.output ?? 0;
+    const tokenMetrics = result?.tokens ?? run.progress.tokens;
+    const inputTokens = tokenMetrics.input ?? 0;
+    const outputTokens = tokenMetrics.output ?? 0;
 
     return {
       architecture: run.architecture,
@@ -1166,13 +1191,13 @@ function buildLiveComparisonData(liveRuns: Record<string, LiveRunState>) {
       cpuPeakPct: run.metrics.cpuPeakPct,
       rssPeakMb: run.metrics.rssPeakMb,
       score: (result?.quality.rubricScore ?? 0) * 100,
-      tokens: result?.tokens.total ?? 0,
-      durationMs: result?.durationMs ?? 0,
-      handoffs: result?.coordination.handoffs ?? 0,
+      tokens: tokenMetrics.total ?? 0,
+      durationMs: result?.durationMs ?? run.progress.elapsedMs,
+      handoffs: result?.coordination.handoffs ?? run.progress.handoffs,
       outputRatio: inputTokens > 0 ? outputTokens / inputTokens : 0,
       testsPassed: result?.quality.testsPassed ?? 0,
       testsFailed: result?.quality.testsFailed ?? 0,
-      toolCalls: result?.resources.toolCallCount ?? 0,
+      toolCalls: result?.resources.toolCallCount ?? run.progress.toolCalls,
       outcome: result?.outcome ?? "pending"
     } satisfies LiveComparisonDatum;
   });

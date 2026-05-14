@@ -136,9 +136,16 @@ export interface EdgeTraceEvent {
   target: string;
 }
 
+export interface LiveProgressSnapshot {
+  elapsedMs: number;
+  handoffs: number;
+  toolCalls: number;
+  tokens: TokenMetrics;
+}
+
 export interface LiveUpdate {
   architecture: ArchitectureName;
-  type: "trace" | "node_event" | "node_stream" | "graph_edge" | "metrics" | "complete" | "error";
+  type: "trace" | "node_event" | "node_stream" | "graph_edge" | "metrics" | "progress" | "complete" | "error";
   data: any;
 }
 
