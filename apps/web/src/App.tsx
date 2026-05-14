@@ -472,7 +472,12 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
                   </button>
                 </div>
                 <div style={{ flex: 1, minHeight: isFullscreen ? '0' : '300px' }}>
-                  <AnimatedAgentGraph architecture={run.architecture} nodeEvents={run.nodeEvents} dynamicEdges={run.dynamicEdges} />
+                  <AnimatedAgentGraph 
+                    architecture={run.architecture} 
+                    nodeEvents={run.nodeEvents} 
+                    dynamicEdges={run.dynamicEdges}
+                    interactive={isFullscreen}
+                  />
                 </div>
             </div>
           );

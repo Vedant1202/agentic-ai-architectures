@@ -1,6 +1,126 @@
 {
   "runs": [
     {
+      "runId": "411907e6-eda7-441c-a345-45d01527c699",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T07:55:53.427Z",
+      "durationMs": 160383,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "fail",
+      "tokens": {
+        "input": 6491,
+        "output": 5785,
+        "reasoning": 420,
+        "total": 12276
+      },
+      "resources": {
+        "cpuAvgPct": 1.5,
+        "cpuPeakPct": 64.2,
+        "rssPeakMb": 104.9,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 0,
+        "testsFailed": 0,
+        "rubricScore": 0,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: [API Error: Rate limit or connectivity issue. Reverting to fallback for this node.]"
+    },
+    {
+      "runId": "117d170d-31fe-4a77-9983-fab435c1de32",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T07:55:53.427Z",
+      "durationMs": 158759,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 9991,
+        "output": 7512,
+        "reasoning": 598,
+        "total": 17503
+      },
+      "resources": {
+        "cpuAvgPct": 1.6,
+        "cpuPeakPct": 64.3,
+        "rssPeakMb": 104.9,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis**\nThe \"15-minute early expiration\" is a classic **Negative Leeway Logic Error**. The implementation likely uses a \"minimum remaining life\" check (e.g., `if (expiry - now < 15m) expire()…"
+    },
+    {
+      "runId": "fa6b1903-2fa8-4dbd-9951-b994169a09ae",
+      "tool": "langgraph-gemini",
+      "architecture": "decentralized",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T07:55:53.427Z",
+      "durationMs": 135268,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "fail",
+      "tokens": {
+        "input": 15402,
+        "output": 8310,
+        "reasoning": 399,
+        "total": 23712
+      },
+      "resources": {
+        "cpuAvgPct": 1.8,
+        "cpuPeakPct": 65.5,
+        "rssPeakMb": 104.9,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 0,
+        "testsFailed": 0,
+        "rubricScore": 0,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 1,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Peer C merged the independent proposals. -> Final synthesizer produced the benchmark answer. Summary: [API Error: Rate limit or connectivity issue. Reverting to fallback for this node.]"
+    },
+    {
       "runId": "3f052236-86ed-40a1-994b-abe93d6a38ab",
       "tool": "langgraph-gemini",
       "architecture": "hybrid",

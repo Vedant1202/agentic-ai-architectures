@@ -187,11 +187,13 @@ const nodeTypes = {
 export function AnimatedAgentGraph({ 
   architecture, 
   nodeEvents,
-  dynamicEdges = []
+  dynamicEdges = [],
+  interactive = false
 }: { 
   architecture: ArchitectureName; 
   nodeEvents: Record<string, NodeTraceEvent & { streamedText?: string }>;
   dynamicEdges?: { source: string; target: string }[];
+  interactive?: boolean;
 }) {
   const [selectedEvent, setSelectedEvent] = useState<NodeTraceEvent | null>(null);
 
@@ -274,8 +276,10 @@ export function AnimatedAgentGraph({
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.3 }}
-        panOnDrag={false}
-        zoomOnScroll={false}
+        panOnDrag={true}
+        zoomOnScroll={interactive}
+        selectionOnDrag={interactive}
+        panOnScroll={false}
       >
         <Background color="rgba(255,255,255,0.05)" gap={20} />
       </ReactFlow>
