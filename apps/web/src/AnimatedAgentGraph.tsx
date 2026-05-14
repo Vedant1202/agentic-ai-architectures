@@ -57,7 +57,7 @@ const LAYOUTS: Record<ArchitectureName, LayoutConfig> = {
       { source: "review", target: "finalize" }
     ]
   },
-  decentralized_emulated: {
+  decentralized: {
     nodes: [
       { id: "peer_a", x: 50, y: 20, label: "Peer A" },
       { id: "peer_b", x: 50, y: 180, label: "Peer B" },

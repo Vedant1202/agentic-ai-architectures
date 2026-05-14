@@ -216,7 +216,7 @@ export default function App() {
           </p>
         </div>
         <div className="hero-panel">
-          <StatCard label="Live Runner" value={data?.runner.mode === "live" ? "Gemini 1.5 Pro" : "Simulated"} detail="Provider: LangGraph" />
+          <StatCard label="Live Runner" value={data?.runner.model || (data?.runner.mode === "live" ? "Gemini 2.0 Flash" : "Simulated")} detail="Provider: LangGraph" />
           <StatCard label="Total Runs" value={data?.runs.length.toString() || "0"} detail="In local ledger" />
           <StatCard label="Avg Quality" value="84%" detail="Cross-arch average" />
           <StatCard label="Throughput" value="1.2 req/s" detail="System capacity" />
@@ -338,7 +338,7 @@ const ARCH_COLORS: Record<string, string> = {
   single: "#60a5fa",
   centralized: "#f472b6",
   hybrid: "#a78bfa",
-  decentralized_emulated: "#34d399",
+  decentralized: "#34d399",
 };
 
 function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveRunState> }) {

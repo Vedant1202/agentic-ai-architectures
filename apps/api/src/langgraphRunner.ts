@@ -15,7 +15,7 @@ import type {
   RunnerStatus
 } from "@agent-visibility/shared";
 
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-2.0-flash-lite";
 const getGoogleKey = () => process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
 
 const GraphState = Annotation.Root({
@@ -399,7 +399,7 @@ function buildArchitectureGraph(
       builder.addNode("finalize", finalizeNode);
       builder.addEdge(START, "plan").addEdge("plan", "finalize").addEdge("finalize", END);
       break;
-    case "decentralized_emulated":
+    case "decentralized":
       builder.addNode("start_peers", async (state) => {
         // Assume START is the initiator visually, but we'll just draw peer_a and peer_b as roots
         const [paState, pbState] = await Promise.all([

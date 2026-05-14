@@ -9,7 +9,7 @@ export type ArchitectureName =
   | "single"
   | "centralized"
   | "hybrid"
-  | "decentralized_emulated"
+  | "decentralized"
   | "dynamic_swarm";
 
 export type Outcome = "pass" | "partial" | "fail";

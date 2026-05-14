@@ -56,8 +56,8 @@ export const ARCHITECTURE_DEFINITIONS: ArchitectureDefinition[] = [
     color: "#2563eb"
   },
   {
-    name: "decentralized_emulated",
-    label: "Decentralized (Emulated)",
+    name: "decentralized",
+    label: "Decentralized",
     summary: "Multiple workers act like peers and synchronize through shared summaries or state.",
     tradeoff: "Great for experiments, but higher conflict and coordination overhead.",
     color: "#7c3aed"
