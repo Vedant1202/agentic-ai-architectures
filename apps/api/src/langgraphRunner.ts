@@ -15,7 +15,7 @@ import type {
   RunnerStatus
 } from "@agent-visibility/shared";
 
-const DEFAULT_MODEL = "gemma-3-27b";
+const DEFAULT_MODEL = "gemma-4-26b-a4b-it";
 const getGoogleKey = () => process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
 
 const GraphState = Annotation.Root({
