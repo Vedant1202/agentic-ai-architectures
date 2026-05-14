@@ -5,3 +5,8 @@ coverage
 .vite
 .env.local
 .env
+METRICS_EXPLAINER.md
+.gitignore
+available_models.txt
+data/runs.user.json
+

@@ -1,6 +1,46 @@
 {
   "runs": [
     {
+      "runId": "40ab0693-24d3-498f-baa2-7176b014bd78",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "custom",
+      "taskLabel": "Custom Experiment",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T08:13:12.128Z",
+      "durationMs": 65366,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "fail",
+      "tokens": {
+        "input": 5813,
+        "output": 2023,
+        "reasoning": 401,
+        "total": 7836
+      },
+      "resources": {
+        "cpuAvgPct": 2.1,
+        "cpuPeakPct": 54.1,
+        "rssPeakMb": 89.1,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 0,
+        "testsFailed": 1,
+        "rubricScore": 0,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [API Error: Rate limit or connectivity issue. Reverting to fallback for this node.]"
+    },
+    {
       "runId": "c4072115-d1f8-46e4-b20a-0ca4be511d99",
       "tool": "langgraph-gemini",
       "architecture": "single",
