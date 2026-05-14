@@ -243,7 +243,7 @@
     {
       "runId": "ff0aae72-2654-47a1-8886-841b52923ad7",
       "tool": "langgraph-gemini",
-      "architecture": "decentralized_emulated",
+      "architecture": "decentralized",
       "taskId": "custom",
       "taskLabel": "Custom Experiment",
       "dataset": "simulated",
@@ -403,7 +403,7 @@
     {
       "runId": "6ae643ea-1941-4d56-82d9-47f89b06e357",
       "tool": "langgraph-gemini",
-      "architecture": "decentralized_emulated",
+      "architecture": "decentralized",
       "taskId": "bugfix_auth_01",
       "taskLabel": "Complex Auth Session Regression",
       "dataset": "simulated",
@@ -1803,7 +1803,7 @@
     {
       "runId": "0ea3ba63-8c1f-437f-b4ff-a291c77bf875",
       "tool": "langgraph-gemini",
-      "architecture": "decentralized_emulated",
+      "architecture": "decentralized",
       "taskId": "bugfix_auth_01",
       "taskLabel": "Bugfix auth session expiry",
       "dataset": "simulated",

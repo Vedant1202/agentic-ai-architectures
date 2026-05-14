@@ -123,7 +123,7 @@
     {
       "runId": "codex-auth-decentralized-01",
       "tool": "codex",
-      "architecture": "decentralized_emulated",
+      "architecture": "decentralized",
       "taskId": "bugfix_auth_01",
       "taskLabel": "Bugfix auth session expiry",
       "dataset": "sample",
@@ -283,7 +283,7 @@
     {
       "runId": "codex-refactor-decentralized-01",
       "tool": "codex",
-      "architecture": "decentralized_emulated",
+      "architecture": "decentralized",
       "taskId": "refactor_parser_01",
       "taskLabel": "Refactor CSV parser module",
       "dataset": "sample",

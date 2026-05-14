@@ -242,7 +242,7 @@ function buildArchitectureGraph(
 
     const implementationPlan = await runtime.generateTextStream(
       "peer_a",
-      "You are peer A in an emulated decentralized benchmark. Produce an independent solution sketch.",
+      "You are peer A in an decentralized benchmark. Produce an independent solution sketch.",
       taskBlock(state.taskLabel, state.taskPrompt),
       (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_a", text } })
     );
@@ -266,7 +266,7 @@ function buildArchitectureGraph(
 
     const researchNotes = await runtime.generateTextStream(
       "peer_b",
-      "You are peer B in an emulated decentralized benchmark. Produce an alternative diagnosis and tests.",
+      "You are peer B in an decentralized benchmark. Produce an alternative diagnosis and tests.",
       taskBlock(state.taskLabel, state.taskPrompt),
       (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_b", text } })
     );
@@ -291,7 +291,7 @@ function buildArchitectureGraph(
     const reviewNotes = await runtime.generateTextStream(
       "peer_merge",
       [
-        "You are peer C merging conflicting ideas in an emulated decentralized benchmark.",
+        "You are peer C merging conflicting ideas in an decentralized benchmark.",
         "Synthesize the two proposals, name the conflict, and choose a direction."
       ].join(" "),
       [
@@ -747,7 +747,7 @@ function buildRun(input: {
     coordination: {
       handoffs: input.handoffs,
       retries: 0,
-      mergeConflicts: input.architecture === "decentralized_emulated" ? 1 : 0,
+      mergeConflicts: input.architecture === "decentralized" ? 1 : 0,
       reviewLoops: input.architecture === "hybrid" ? 1 : 0
     },
     executionMode: input.runtime.getStatus().mode,
@@ -870,7 +870,7 @@ function buildSimulatedEvaluation(architecture: ArchitectureName): Evaluation {
       regressionCount: 0,
       rationale: "Verifier feedback tightened the final plan and reduced blind spots."
     },
-    decentralized_emulated: {
+    decentralized: {
       rubricScore: 0.79,
       outcome: "partial",
       testsPassed: 6,
@@ -922,7 +922,7 @@ function labelForArchitecture(architecture: ArchitectureName) {
       return "centralized";
     case "hybrid":
       return "hybrid";
-    case "decentralized_emulated":
+    case "decentralized":
       return "decentralized emulation";
     case "dynamic_swarm":
       return "dynamic swarm";
@@ -937,7 +937,7 @@ function agentCountForArchitecture(architecture: ArchitectureName) {
       return 3;
     case "hybrid":
       return 4;
-    case "decentralized_emulated":
+    case "decentralized":
       return 4;
     case "dynamic_swarm":
       return 5;
