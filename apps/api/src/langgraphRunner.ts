@@ -923,7 +923,7 @@ function labelForArchitecture(architecture: ArchitectureName) {
     case "hybrid":
       return "hybrid";
     case "decentralized":
-      return "decentralized emulation";
+      return "decentralized";
     case "dynamic_swarm":
       return "dynamic swarm";
   }
