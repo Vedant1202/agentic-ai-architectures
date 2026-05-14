@@ -13,6 +13,7 @@ import { runBenchmark, getRunnerStatus } from "./langgraphRunner.js";
 import { appendUserRun, loadUserRuns } from "./storage.js";
 import { BENCHMARK_TASKS, getTaskById } from "./tasks.js";
 
+loadEnv({ path: new URL("../../../.env", import.meta.url) });
 loadEnv({ path: new URL("../../../.env.local", import.meta.url) });
 
 const app = express();

@@ -16,7 +16,7 @@ import type {
 } from "@agent-visibility/shared";
 
 const DEFAULT_MODEL = "gemini-2.5-flash";
-const GOOGLE_KEY = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
+const getGoogleKey = () => process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
 
 const GraphState = Annotation.Root({
   taskPrompt: Annotation<string>(),
@@ -452,10 +452,11 @@ function buildArchitectureGraph(
 }
 
 function createRuntime() {
-  if (GOOGLE_KEY) {
+  const key = getGoogleKey();
+  if (key) {
     return new Runtime(
       new ChatGoogle({
-        apiKey: GOOGLE_KEY,
+        apiKey: key,
         model: DEFAULT_MODEL,
         temperature: 0.2
       }),
@@ -542,17 +543,23 @@ class Runtime {
       return text;
     }
 
-    const stream = await this.model.stream([
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
-    ]);
-
     let fullText = "";
-    for await (const chunk of stream) {
-      if (chunk.content) {
-        fullText += typeof chunk.content === "string" ? chunk.content : JSON.stringify(chunk.content);
-        onChunk(fullText);
+    try {
+      const stream = await this.model.stream([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ]);
+
+      for await (const chunk of stream) {
+        if (chunk.content) {
+          fullText += typeof chunk.content === "string" ? chunk.content : JSON.stringify(chunk.content);
+          onChunk(fullText);
+        }
       }
+    } catch (err) {
+      console.error("Gemini API stream error:", err);
+      fullText = "[API Error: Rate limit or connectivity issue. Reverting to fallback for this node.]";
+      onChunk(fullText);
     }
     
     this.usage.input += estimateTokens(systemPrompt) + estimateTokens(userPrompt);
