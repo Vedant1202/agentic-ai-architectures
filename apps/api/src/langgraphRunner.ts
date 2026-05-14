@@ -357,42 +357,67 @@ function buildArchitectureGraph(
         .addEdge("finalize", END);
       break;
     case "centralized":
-      builder.addNode("plan", planNode);
-      builder.addNode("research", researchNode);
-      builder.addNode("implement", implementNode);
+      builder.addNode("plan", async (state) => {
+        const pState = await planNode(state);
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "plan", target: "research" } });
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "plan", target: "implement" } });
+        
+        const [rState, iState] = await Promise.all([
+          researchNode({ ...state, ...pState }),
+          implementNode({ ...state, ...pState })
+        ]);
+        
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "research", target: "finalize" } });
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "implement", target: "finalize" } });
+        
+        return { ...pState, ...rState, ...iState, handoffs: 3, modelCalls: 3 };
+      });
       builder.addNode("finalize", finalizeNode);
-      builder
-        .addEdge(START, "plan")
-        .addEdge("plan", "research")
-        .addEdge("research", "implement")
-        .addEdge("implement", "finalize")
-        .addEdge("finalize", END);
+      builder.addEdge(START, "plan").addEdge("plan", "finalize").addEdge("finalize", END);
       break;
     case "hybrid":
-      builder.addNode("plan", planNode);
-      builder.addNode("research", researchNode);
-      builder.addNode("implement", implementNode);
-      builder.addNode("review", reviewNode);
+      builder.addNode("plan", async (state) => {
+        const pState = await planNode(state);
+        
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "plan", target: "peer_a" } });
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "plan", target: "peer_b" } });
+        
+        const [paState, pbState] = await Promise.all([
+          peerANode({ ...state, ...pState }),
+          peerBNode({ ...state, ...pState })
+        ]);
+        
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "peer_a", target: "review" } });
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "peer_b", target: "review" } });
+        
+        const revState = await reviewNode({ ...state, ...pState, ...paState, ...pbState });
+        
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "review", target: "finalize" } });
+        
+        return { ...pState, ...paState, ...pbState, ...revState, handoffs: 4, modelCalls: 4 };
+      });
       builder.addNode("finalize", finalizeNode);
-      builder
-        .addEdge(START, "plan")
-        .addEdge("plan", "research")
-        .addEdge("research", "implement")
-        .addEdge("implement", "review")
-        .addEdge("review", "finalize")
-        .addEdge("finalize", END);
+      builder.addEdge(START, "plan").addEdge("plan", "finalize").addEdge("finalize", END);
       break;
     case "decentralized_emulated":
-      builder.addNode("peer_a", peerANode);
-      builder.addNode("peer_b", peerBNode);
-      builder.addNode("peer_merge", peerMergeNode);
+      builder.addNode("start_peers", async (state) => {
+        // Assume START is the initiator visually, but we'll just draw peer_a and peer_b as roots
+        const [paState, pbState] = await Promise.all([
+          peerANode(state),
+          peerBNode(state)
+        ]);
+        
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "peer_a", target: "peer_merge" } });
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "peer_b", target: "peer_merge" } });
+        
+        const mState = await peerMergeNode({ ...state, ...paState, ...pbState });
+        
+        onUpdate?.({ architecture, type: "graph_edge", data: { source: "peer_merge", target: "finalize" } });
+        
+        return { ...paState, ...pbState, ...mState, handoffs: 3, modelCalls: 3 };
+      });
       builder.addNode("finalize", finalizeNode);
-      builder
-        .addEdge(START, "peer_a")
-        .addEdge("peer_a", "peer_b")
-        .addEdge("peer_b", "peer_merge")
-        .addEdge("peer_merge", "finalize")
-        .addEdge("finalize", END);
+      builder.addEdge(START, "start_peers").addEdge("start_peers", "finalize").addEdge("finalize", END);
       break;
     case "dynamic_swarm":
       builder.addNode("manager", async (state: typeof GraphState.State) => {

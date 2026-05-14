@@ -24,43 +24,45 @@ interface LayoutConfig {
 
 const LAYOUTS: Record<ArchitectureName, LayoutConfig> = {
   single: {
-    nodes: [{ id: "finalize", x: 100, y: 50, label: "Finalizer" }],
+    nodes: [{ id: "finalize", x: 250, y: 100, label: "Finalizer" }],
     edges: []
   },
   centralized: {
     nodes: [
-      { id: "plan", x: 50, y: 50, label: "Planner" },
-      { id: "research", x: 250, y: 50, label: "Researcher" },
-      { id: "implement", x: 450, y: 50, label: "Implementer" },
-      { id: "finalize", x: 650, y: 50, label: "Finalizer" }
+      { id: "plan", x: 50, y: 100, label: "Coordinator" },
+      { id: "research", x: 250, y: 20, label: "Researcher" },
+      { id: "implement", x: 250, y: 180, label: "Implementer" },
+      { id: "finalize", x: 450, y: 100, label: "Finalizer" }
     ],
     edges: [
       { source: "plan", target: "research" },
-      { source: "research", target: "implement" },
+      { source: "plan", target: "implement" },
+      { source: "research", target: "finalize" },
       { source: "implement", target: "finalize" }
     ]
   },
   hybrid: {
     nodes: [
-      { id: "plan", x: 50, y: 50, label: "Planner" },
-      { id: "research", x: 250, y: 50, label: "Researcher" },
-      { id: "implement", x: 450, y: 50, label: "Implementer" },
-      { id: "review", x: 650, y: 50, label: "Verifier" },
-      { id: "finalize", x: 850, y: 50, label: "Finalizer" }
+      { id: "plan", x: 50, y: 100, label: "Coordinator" },
+      { id: "peer_a", x: 250, y: 20, label: "Peer A" },
+      { id: "peer_b", x: 250, y: 180, label: "Peer B" },
+      { id: "review", x: 450, y: 100, label: "Reviewer" },
+      { id: "finalize", x: 650, y: 100, label: "Finalizer" }
     ],
     edges: [
-      { source: "plan", target: "research" },
-      { source: "research", target: "implement" },
-      { source: "implement", target: "review" },
+      { source: "plan", target: "peer_a" },
+      { source: "plan", target: "peer_b" },
+      { source: "peer_a", target: "review" },
+      { source: "peer_b", target: "review" },
       { source: "review", target: "finalize" }
     ]
   },
   decentralized_emulated: {
     nodes: [
-      { id: "peer_a", x: 50, y: 0, label: "Peer A" },
-      { id: "peer_b", x: 50, y: 100, label: "Peer B" },
-      { id: "peer_merge", x: 250, y: 50, label: "Peer Merge" },
-      { id: "finalize", x: 450, y: 50, label: "Finalizer" }
+      { id: "peer_a", x: 50, y: 20, label: "Peer A" },
+      { id: "peer_b", x: 50, y: 180, label: "Peer B" },
+      { id: "peer_merge", x: 250, y: 100, label: "Peer Merge" },
+      { id: "finalize", x: 450, y: 100, label: "Finalizer" }
     ],
     edges: [
       { source: "peer_a", target: "peer_merge" },

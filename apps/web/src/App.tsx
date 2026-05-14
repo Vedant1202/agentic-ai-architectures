@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import {
   ARCHITECTURE_DEFINITIONS,
@@ -40,6 +40,7 @@ export default function App() {
   ]);
   const [isComparing, setIsComparing] = useState(false);
   const [liveRuns, setLiveRuns] = useState<Record<string, LiveRunState>>({});
+  const graphsRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     loadOverview();
@@ -71,6 +72,10 @@ export default function App() {
       };
     });
     setLiveRuns(initialLiveRuns);
+    
+    setTimeout(() => {
+      graphsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 
     const params = new URLSearchParams({
       taskId: selectedTaskId,
@@ -276,7 +281,7 @@ export default function App() {
       </section>
 
       {Object.keys(liveRuns).length > 0 && (
-        <section className="panel">
+        <section ref={graphsRef} className="panel">
           <div className="panel-header">
             <h2>Live Comparative Dashboard</h2>
             <p>Real-time tradeoff analysis across selected architectures.</p>
@@ -337,6 +342,8 @@ const ARCH_COLORS: Record<string, string> = {
 };
 
 function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveRunState> }) {
+  const [fullscreenGraph, setFullscreenGraph] = useState<ArchitectureName | null>(null);
+
   const data = Object.values(liveRuns).map(run => {
     const archDef = ARCHITECTURE_DEFINITIONS.find(a => a.name === run.architecture);
     return {
@@ -432,19 +439,53 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
       <div className="unified-traces" style={{ display: 'grid', gridTemplateColumns: `repeat(${data.length > 2 ? 2 : data.length}, 1fr)`, gap: '16px' }}>
         {Object.values(liveRuns).map((run) => {
           const archDef = ARCHITECTURE_DEFINITIONS.find(a => a.name === run.architecture);
+          const isFullscreen = fullscreenGraph === run.architecture;
+          
           return (
-            <div key={run.architecture} className={`arch-run-card ${run.status === "running" ? "active" : ""} ${run.status === "complete" ? "complete" : ""}`}>
-               <div className="arch-header">
-                  <h3 style={{ color: ARCH_COLORS[run.architecture] }}>{archDef?.label || run.architecture}</h3>
-                  <span className={`arch-status-tag ${run.status}`}>
-                    {run.status}
-                  </span>
+            <div 
+              key={run.architecture} 
+              className={`arch-run-card ${run.status === "running" ? "active" : ""} ${run.status === "complete" ? "complete" : ""}`}
+              style={isFullscreen ? {
+                position: 'fixed',
+                top: '5%', left: '5%', right: '5%', bottom: '5%',
+                zIndex: 1000,
+                background: 'var(--panel-bg)',
+                boxShadow: '0 0 50px rgba(0,0,0,0.8)',
+                display: 'flex', flexDirection: 'column'
+              } : {
+                resize: 'vertical',
+                overflow: 'hidden'
+              }}
+            >
+               <div className="arch-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <h3 style={{ margin: 0, color: ARCH_COLORS[run.architecture] }}>{archDef?.label || run.architecture}</h3>
+                    <span className={`arch-status-tag ${run.status}`}>
+                      {run.status}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenGraph(isFullscreen ? null : run.architecture)}
+                    style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-color)', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}
+                  >
+                    {isFullscreen ? "Close Fullscreen" : "Fullscreen"}
+                  </button>
                 </div>
-                <AnimatedAgentGraph architecture={run.architecture} nodeEvents={run.nodeEvents} dynamicEdges={run.dynamicEdges} />
+                <div style={{ flex: 1, minHeight: isFullscreen ? '0' : '300px' }}>
+                  <AnimatedAgentGraph architecture={run.architecture} nodeEvents={run.nodeEvents} dynamicEdges={run.dynamicEdges} />
+                </div>
             </div>
           );
         })}
       </div>
+      
+      {/* Fullscreen backdrop overlay */}
+      {fullscreenGraph && (
+        <div 
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 999 }}
+          onClick={() => setFullscreenGraph(null)}
+        />
+      )}
     </div>
   );
 }
