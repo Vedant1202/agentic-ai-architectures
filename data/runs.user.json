@@ -1,6 +1,144 @@
 {
   "runs": [
     {
+      "runId": "db285268-7802-4f97-9b78-59a821587f29",
+      "tool": "langgraph-gemini",
+      "architecture": "dynamic_swarm",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T21:22:57.897Z",
+      "durationMs": 116228,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 5,
+      "outcome": "pass",
+      "tokens": {
+        "input": 8275,
+        "output": 10568,
+        "reasoning": 1113,
+        "total": 18843
+      },
+      "resources": {
+        "cpuAvgPct": 0.9,
+        "cpuPeakPct": 18.3,
+        "rssPeakMb": 52.3,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 3,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "..."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis:** The task requires a multi-dimensional decision-making process that balances qualitative risk (security/reliability) with quantitative metrics (pricing/integration). A failure to para…"
+    },
+    {
+      "runId": "3fcb01c4-8014-4d0d-8cdd-5cc04e7f3176",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T21:22:57.897Z",
+      "durationMs": 108951,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 8907,
+        "output": 7730,
+        "reasoning": 1579,
+        "total": 16637
+      },
+      "resources": {
+        "cpuAvgPct": 1,
+        "cpuPeakPct": 18.4,
+        "rssPeakMb": 52.3,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 3,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "..."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]### Final Synthesis: Parallel Vendor Risk Review\n\n**Diagnosis**\nThe task requires a high-concurrency orchestration pattern to evaluate a complex, multi-dimensional decision. The primary technical c…"
+    },
+    {
+      "runId": "b80a918d-c72e-477d-bde8-b1cdbcd0a4ce",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T21:22:57.855Z",
+      "durationMs": 50946,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "pass",
+      "tokens": {
+        "input": 2039,
+        "output": 2810,
+        "reasoning": 991,
+        "total": 4849
+      },
+      "resources": {
+        "cpuAvgPct": 1.2,
+        "cpuPeakPct": 18,
+        "rssPeakMb": 51.6,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 5,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "The response successfully implements a centralized architecture for a parallel task. It decomposes the problem into four distinct, independent workstreams (Security, Pricing, Incidents, Integration), specifies granular evidence for each, defines a clear synthesis mechanism (Weighted Decision Matrix), identifies key unknowns (Residual Risks), and explains the decision logic (aggregate score vs. risk threshold)."
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Parallel Vendor Risk Review (Enterprise Contract Renewal).\\nSecurity Posture,\"}][{\"thought\":true,\"type\":\"text\",\"text\":\" Pricing Trends, Incident History, Integration Cost.\\n\\n        1.  Break into pa…"
+    },
+    {
       "runId": "fe31e2cc-620c-4a8f-ac1c-60c90d579681",
       "tool": "langgraph-gemini",
       "architecture": "dynamic_swarm",

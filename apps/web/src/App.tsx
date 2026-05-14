@@ -952,9 +952,9 @@ function ArchitectureRunCard({
       <div className="run-card__live-strip">
         <span className="live-token-counter">
           {summary.tokens > 0 ? (
-            <><strong>{formatCompact(summary.tokens)}</strong> tokens {isRunning ? "(live)" : ""}</>
+            <><strong>{formatCompact(summary.tokens)}</strong> tokens {isRunning ? <span className="live-badge">live</span> : ""}</>
           ) : (
-            "Waiting for first node..."
+            "Waiting for first node…"
           )}
         </span>
         {summary.durationMs > 0 && (
@@ -962,36 +962,7 @@ function ArchitectureRunCard({
         )}
       </div>
 
-      {/* Quality metrics — populated only after run completes */}
-      <div className="run-card__eval-section">
-        <div className="eval-section-header">
-          <span>Evaluation scores</span>
-          {evalPending && <span className="eval-pending-badge">Post-run</span>}
-        </div>
-        <div className="run-card__metrics">
-          <MiniMetric
-            label="Index"
-            value={isComplete ? formatPercent(summary.score) : dash}
-            sublabel={isComplete ? `= 45%·J + 25%·C + 15%·Conf + 15%·T` : "After evaluation"}
-          />
-          <MiniMetric
-            label="Judge"
-            value={isComplete ? formatPercent(summary.judgeScore) : dash}
-            sublabel={isComplete ? "Holistic rubric" : "After evaluation"}
-          />
-          <MiniMetric
-            label="Criteria"
-            value={isComplete ? formatPercent(summary.criteriaCoverage) : dash}
-            sublabel={isComplete ? "Checklist coverage" : "After evaluation"}
-          />
-          <MiniMetric
-            label="Confidence"
-            value={isComplete ? formatPercent(summary.confidenceScore) : dash}
-            sublabel={isComplete ? "Evaluator certainty" : "After evaluation"}
-          />
-        </div>
-      </div>
-
+      {/* Node graph */}
       <div className="graph-shell">
         <AnimatedAgentGraph
           architecture={run.architecture}
@@ -1000,99 +971,94 @@ function ArchitectureRunCard({
         />
       </div>
 
+      {/* Latest trace line */}
       <div className="run-card__snapshot">
-        <span>{run.trace.at(-1) ?? "Waiting for execution trace..."}</span>
+        <span>{run.trace.at(-1) ?? "Waiting for execution trace…"}</span>
       </div>
 
+      {/* Expandable details */}
       <details className="run-card__details">
-        <summary>Expand details</summary>
+        <summary>Show detailed metrics</summary>
 
-        {/* Formula breakdown */}
-        {isComplete && (
-          <div className="formula-breakdown">
-            <div className="formula-breakdown__title">Composite index formula</div>
-            <div className="formula-breakdown__formula">
-              <code>clamp(0.45·J + 0.25·C + 0.15·Conf + 0.15·T) × penalty</code>
-            </div>
-            <div className="formula-breakdown__rows">
-              <div className="formula-row">
-                <span className="formula-row__label">J – Judge score</span>
-                <span className="formula-row__weight">×0.45</span>
-                <span className="formula-row__value">{formatPercent(summary.judgeScore)}</span>
-              </div>
-              <div className="formula-row">
-                <span className="formula-row__label">C – Criteria coverage</span>
-                <span className="formula-row__weight">×0.25</span>
-                <span className="formula-row__value">{formatPercent(summary.criteriaCoverage)}</span>
-              </div>
-              <div className="formula-row">
-                <span className="formula-row__label">Conf – Confidence</span>
-                <span className="formula-row__weight">×0.15</span>
-                <span className="formula-row__value">{formatPercent(summary.confidenceScore)}</span>
-              </div>
-              <div className="formula-row">
-                <span className="formula-row__label">T – Test reliability</span>
-                <span className="formula-row__weight">×0.15</span>
-                <span className="formula-row__value">
-                  {summary.testsPassed + summary.testsFailed > 0
+        <div className="metric-table-section">
+          <div className="metric-table-heading">Evaluation scores</div>
+          {evalPending && (
+            <p className="metric-table-note">These scores are computed by the evaluator after the run finishes.</p>
+          )}
+          <table className="metric-table">
+            <tbody>
+              <MetricRow label="Composite index" value={isComplete ? formatPercent(summary.score) : "—"} note={isComplete ? "= 0.45·J + 0.25·C + 0.15·Conf + 0.15·T" : "Available post-run"} />
+              <MetricRow label="Judge score (J)" value={isComplete ? formatPercent(summary.judgeScore) : "—"} note="Holistic rubric from evaluator model" />
+              <MetricRow label="Criteria coverage (C)" value={isComplete ? formatPercent(summary.criteriaCoverage) : "—"} note="Fraction of task checklist satisfied" />
+              <MetricRow label="Confidence (Conf)" value={isComplete ? formatPercent(summary.confidenceScore) : "—"} note="Evaluator certainty in its own judgment" />
+              <MetricRow
+                label="Test reliability (T)"
+                value={isComplete
+                  ? (summary.testsPassed + summary.testsFailed > 0
                     ? formatPercent((summary.testsPassed / (summary.testsPassed + summary.testsFailed)) * 100)
-                    : "100% (no tests)"}
-                </span>
-              </div>
-              <div className="formula-row formula-row--result">
-                <span className="formula-row__label">Composite index</span>
-                <span className="formula-row__weight"></span>
-                <span className="formula-row__value">{formatPercent(summary.score)}</span>
-              </div>
-            </div>
-          </div>
-        )}
+                    : "100%")
+                  : "—"}
+                note={isComplete
+                  ? `${summary.testsPassed} passed, ${summary.testsFailed} failed`
+                  : "Available post-run"}
+              />
+              <MetricRow label="Outcome" value={isComplete ? summary.outcome : "—"} />
+              <MetricRow label="Eval mode" value={formatVerificationMode(summary.verificationMode)} />
+            </tbody>
+          </table>
+        </div>
 
-        <div className="run-card__details-grid">
-          <MiniMetric label="Tests" value={`${summary.testsPassed}/${summary.testsPassed + summary.testsFailed}`} />
-          <MiniMetric label="Handoffs" value={summary.handoffs.toString()} />
-          <MiniMetric label="I/O ratio" value={`${summary.outputRatio.toFixed(2)}x`} />
-          <MiniMetric label="Eval mode" value={formatVerificationMode(summary.verificationMode)} />
-          <MiniMetric label="Peak CPU" value={`${summary.cpuPeakPct.toFixed(1)}%`} />
-          <MiniMetric label="Peak memory" value={`${summary.rssPeakMb.toFixed(0)} MB`} />
+        <div className="metric-table-section">
+          <div className="metric-table-heading">Token &amp; efficiency</div>
+          <table className="metric-table">
+            <tbody>
+              <MetricRow label="Total tokens" value={summary.tokens > 0 ? formatCompact(summary.tokens) : "—"} note={isRunning ? "Updating live" : undefined} />
+              <MetricRow label="Input / output ratio" value={`${summary.outputRatio.toFixed(2)}×`} />
+              <MetricRow label="Duration" value={summary.durationMs > 0 ? formatDuration(summary.durationMs) : "Streaming"} />
+              <MetricRow label="Model calls" value={summary.toolCalls.toString()} />
+            </tbody>
+          </table>
+        </div>
+
+        <div className="metric-table-section">
+          <div className="metric-table-heading">Coordination</div>
+          <table className="metric-table">
+            <tbody>
+              <MetricRow label="Agent handoffs" value={summary.handoffs.toString()} />
+              <MetricRow label="Peak CPU" value={`${summary.cpuPeakPct.toFixed(1)}%`} />
+              <MetricRow label="Peak memory (RSS)" value={`${summary.rssPeakMb.toFixed(0)} MB`} />
+            </tbody>
+          </table>
         </div>
 
         {summary.rationale && (
-          <div className="trace-item trace-item-info">
-            <strong>Evaluator rationale</strong>
-            <span>{summary.rationale}</span>
+          <div className="metric-table-section">
+            <div className="metric-table-heading">Evaluator rationale</div>
+            <p className="metric-rationale">{summary.rationale}</p>
           </div>
         )}
 
-        <div className="trace-feed">
-          <div className="trace-feed__header">
-            <span>Recent trace</span>
-            <strong>{summary.outcome === "pending" ? "In progress" : summary.outcome}</strong>
+        {run.errorDetails && (
+          <div className="metric-table-section">
+            <div className="metric-table-heading error-heading">{formatLiveErrorTitle(run.errorDetails)}</div>
+            <p className="metric-table-note">{run.errorDetails.message}</p>
+            {run.errorDetails.nodeLabel && (
+              <p className="metric-table-note">Active node: {run.errorDetails.nodeLabel}</p>
+            )}
           </div>
+        )}
 
-          {run.errorDetails && (
-            <div className="trace-item trace-item-error">
-              <strong>{formatLiveErrorTitle(run.errorDetails)}</strong>
-              <span>{run.errorDetails.message}</span>
-              {run.errorDetails.nodeLabel && <span>Active node: {run.errorDetails.nodeLabel}</span>}
-            </div>
-          )}
-
-          {recentTrace.length > 0 ? (
-            recentTrace.map((line, index) => (
-              <div key={`${summary.architecture}-${index}`} className="trace-item">
-                {line}
-              </div>
-            ))
-          ) : (
-            <div className="trace-item trace-item-muted">Waiting for execution trace...</div>
-          )}
-        </div>
-
-        <div className="run-card__footer">
-          <span>{summary.toolCalls} model calls</span>
-          <span>{summary.cpuPeakPct.toFixed(1)}% peak CPU</span>
-          <span>{summary.rssPeakMb.toFixed(0)} MB peak memory</span>
+        <div className="metric-table-section">
+          <div className="metric-table-heading">Execution trace</div>
+          <div className="trace-feed">
+            {recentTrace.length > 0 ? (
+              recentTrace.map((line, index) => (
+                <div key={`${summary.architecture}-${index}`} className="trace-item">{line}</div>
+              ))
+            ) : (
+              <div className="trace-item trace-item-muted">No trace events yet.</div>
+            )}
+          </div>
         </div>
       </details>
     </article>
@@ -1283,6 +1249,17 @@ function MiniMetric({ label, value, sublabel }: { label: string; value: string; 
       <strong>{value}</strong>
       {sublabel && <span className="mini-metric__sublabel">{sublabel}</span>}
     </div>
+  );
+}
+
+function MetricRow({ label, value, note }: { label: string; value: string; note?: string }) {
+  return (
+    <tr className="metric-row">
+      <td className="metric-row__label">{label}</td>
+      <td className="metric-row__value">{value}</td>
+      {note !== undefined && <td className="metric-row__note">{note}</td>}
+      {note === undefined && <td />}
+    </tr>
   );
 }
 
