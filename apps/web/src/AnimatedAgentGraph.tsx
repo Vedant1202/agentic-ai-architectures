@@ -196,7 +196,10 @@ export function AnimatedAgentGraph({
   const [selectedEvent, setSelectedEvent] = useState<NodeTraceEvent | null>(null);
 
   const { nodes: configNodes, edges: configEdges } = useMemo(() => {
-    if (architecture !== "dynamic_swarm") return LAYOUTS[architecture];
+    if (architecture !== "dynamic_swarm") {
+      // Fallback to empty graph if architecture is unknown (e.g. from old cached state)
+      return LAYOUTS[architecture] || LAYOUTS["decentralized"] || { nodes: [], edges: [] };
+    }
 
     const dNodes: any[] = [];
     let subagentCount = 0;
