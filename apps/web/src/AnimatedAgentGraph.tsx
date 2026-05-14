@@ -67,6 +67,10 @@ const LAYOUTS: Record<ArchitectureName, LayoutConfig> = {
       { source: "peer_b", target: "peer_merge" },
       { source: "peer_merge", target: "finalize" }
     ]
+  },
+  dynamic_swarm: {
+    nodes: [],
+    edges: []
   }
 };
 
@@ -75,13 +79,14 @@ const LAYOUTS: Record<ArchitectureName, LayoutConfig> = {
 // ---------------------------------------------------------
 
 function AgentNode({ data }: NodeProps) {
-  const { label, status, tokens, onClick } = data as any;
+  const { label, status, tokens, streamedText, onClick } = data as any;
   const isRunning = status === "running";
   const isComplete = status === "complete";
 
   let borderColor = "var(--border-color)";
   if (isRunning) borderColor = "#60a5fa";
   if (isComplete) borderColor = "#34d399";
+  if (isRunning && label === "Swarm Manager") borderColor = "#eab308";
 
   return (
     <div 
@@ -106,11 +111,51 @@ function AgentNode({ data }: NodeProps) {
           style={{
             position: 'absolute',
             top: -6, left: -6, right: -6, bottom: -6,
-            border: '2px dashed rgba(96, 165, 250, 0.5)',
+            border: `2px dashed ${label === 'Swarm Manager' ? 'rgba(234, 179, 8, 0.5)' : 'rgba(96, 165, 250, 0.5)'}`,
             borderRadius: '10px',
             pointerEvents: 'none'
           }}
         />
+      )}
+
+      {isRunning && streamedText && (
+        <motion.div
+          initial={{ opacity: 0, y: 10, x: '-50%' }}
+          animate={{ opacity: 1, y: 0, x: '-50%' }}
+          style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: '50%',
+            background: 'var(--panel-bg)',
+            border: `1px solid ${label === 'Swarm Manager' ? '#eab308' : '#60a5fa'}`,
+            borderRadius: '8px',
+            padding: '8px',
+            fontSize: '10px',
+            width: '150px',
+            marginBottom: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+            zIndex: 100,
+            color: 'var(--text-color)',
+            textAlign: 'left',
+            fontFamily: 'monospace',
+            whiteSpace: 'pre-wrap',
+            wordWrap: 'break-word',
+            lineHeight: 1.2
+          }}
+        >
+          <div style={{ maxHeight: '60px', overflow: 'hidden' }}>
+            {streamedText.length > 120 ? '...' + streamedText.slice(-120) : streamedText}
+          </div>
+          <div style={{
+            position: 'absolute',
+            bottom: '-6px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: `6px solid ${label === 'Swarm Manager' ? '#eab308' : '#60a5fa'}`
+          }} />
+        </motion.div>
       )}
 
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
@@ -139,17 +184,38 @@ const nodeTypes = {
 
 export function AnimatedAgentGraph({ 
   architecture, 
-  nodeEvents 
+  nodeEvents,
+  dynamicEdges = []
 }: { 
   architecture: ArchitectureName; 
-  nodeEvents: Record<string, NodeTraceEvent> 
+  nodeEvents: Record<string, NodeTraceEvent & { streamedText?: string }>;
+  dynamicEdges?: { source: string; target: string }[];
 }) {
   const [selectedEvent, setSelectedEvent] = useState<NodeTraceEvent | null>(null);
 
-  const config = LAYOUTS[architecture];
+  const { nodes: configNodes, edges: configEdges } = useMemo(() => {
+    if (architecture !== "dynamic_swarm") return LAYOUTS[architecture];
+
+    const dNodes: any[] = [];
+    let subagentCount = 0;
+    
+    Object.keys(nodeEvents).forEach((nodeId) => {
+      const event = nodeEvents[nodeId];
+      if (nodeId === "manager") {
+        dNodes.push({ id: nodeId, x: 20, y: 100, label: event.label });
+      } else if (nodeId === "finalize") {
+        dNodes.push({ id: nodeId, x: 500, y: 100, label: event.label });
+      } else {
+        dNodes.push({ id: nodeId, x: 260, y: 10 + subagentCount * 90, label: event.label });
+        subagentCount++;
+      }
+    });
+
+    return { nodes: dNodes, edges: dynamicEdges };
+  }, [architecture, nodeEvents, dynamicEdges]);
 
   const nodes = useMemo(() => {
-    return config.nodes.map(n => {
+    return configNodes.map(n => {
       const event = nodeEvents[n.id];
       return {
         id: n.id,
@@ -159,6 +225,7 @@ export function AnimatedAgentGraph({
           label: event?.label || n.label,
           status: event?.status || "pending",
           tokens: event?.tokens || 0,
+          streamedText: event?.streamedText || "",
           onClick: () => {
             if (event?.status === "complete") {
               setSelectedEvent(event);
@@ -167,10 +234,10 @@ export function AnimatedAgentGraph({
         }
       };
     });
-  }, [config, nodeEvents]);
+  }, [configNodes, nodeEvents]);
 
   const edges = useMemo(() => {
-    return config.edges.map((e, i) => {
+    return configEdges.map((e, i) => {
       const targetEvent = nodeEvents[e.target];
       const sourceEvent = nodeEvents[e.source];
       // Animate if the target is currently running and the source is complete!
@@ -192,7 +259,7 @@ export function AnimatedAgentGraph({
         }
       };
     });
-  }, [config, nodeEvents]);
+  }, [configEdges, nodeEvents]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '220px', borderRadius: '8px', overflow: 'hidden', background: 'rgba(0,0,0,0.2)' }}>

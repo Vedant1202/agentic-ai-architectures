@@ -9,7 +9,8 @@ export type ArchitectureName =
   | "single"
   | "centralized"
   | "hybrid"
-  | "decentralized_emulated";
+  | "decentralized_emulated"
+  | "dynamic_swarm";
 
 export type Outcome = "pass" | "partial" | "fail";
 
@@ -125,9 +126,19 @@ export interface NodeTraceEvent {
   tokens?: number;
 }
 
+export interface NodeStreamEvent {
+  node: string;
+  text: string;
+}
+
+export interface EdgeTraceEvent {
+  source: string;
+  target: string;
+}
+
 export interface LiveUpdate {
   architecture: ArchitectureName;
-  type: "trace" | "node_event" | "metrics" | "complete" | "error";
+  type: "trace" | "node_event" | "node_stream" | "graph_edge" | "metrics" | "complete" | "error";
   data: any;
 }
 

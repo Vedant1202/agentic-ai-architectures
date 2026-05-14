@@ -61,5 +61,12 @@ export const ARCHITECTURE_DEFINITIONS: ArchitectureDefinition[] = [
     summary: "Multiple workers act like peers and synchronize through shared summaries or state.",
     tradeoff: "Great for experiments, but higher conflict and coordination overhead.",
     color: "#7c3aed"
+  },
+  {
+    name: "dynamic_swarm",
+    label: "Dynamic Swarm",
+    summary: "A manager node dynamically assesses the task and spawns specialized sub-agents on the fly.",
+    tradeoff: "Most adaptive and fluid, but token-heavy due to parallel sub-agent streams.",
+    color: "#eab308"
   }
 ];

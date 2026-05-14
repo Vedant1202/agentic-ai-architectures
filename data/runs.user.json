@@ -1,6 +1,526 @@
 {
   "runs": [
     {
+      "runId": "be629d02-b49e-4f81-8ac4-b61761929714",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:52:50.324Z",
+      "durationMs": 5892,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 1980,
+        "output": 477,
+        "reasoning": 0,
+        "total": 2457
+      },
+      "resources": {
+        "cpuAvgPct": 2.2,
+        "cpuPeakPct": 8.9,
+        "rssPeakMb": 39.7,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.92,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Planner framed the hybrid run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "363d1b32-b7fa-4c75-a472-a987fd857b59",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:52:50.324Z",
+      "durationMs": 4727,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 1591,
+        "output": 396,
+        "reasoning": 0,
+        "total": 1987
+      },
+      "resources": {
+        "cpuAvgPct": 2.4,
+        "cpuPeakPct": 8.9,
+        "rssPeakMb": 39.7,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.86,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "6ae643ea-1941-4d56-82d9-47f89b06e357",
+      "tool": "langgraph-gemini",
+      "architecture": "decentralized_emulated",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:52:50.325Z",
+      "durationMs": 4057,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 4,
+      "outcome": "partial",
+      "tokens": {
+        "input": 1420,
+        "output": 350,
+        "reasoning": 0,
+        "total": 1770
+      },
+      "resources": {
+        "cpuAvgPct": 2.4,
+        "cpuPeakPct": 8.3,
+        "rssPeakMb": 39.7,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 6,
+        "testsFailed": 1,
+        "rubricScore": 0.79,
+        "regressionCount": 1
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 1,
+        "reviewLoops": 0
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Peer C merged the independent proposals. -> Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "c9439de9-c895-4276-85e9-8c3004566a1c",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:52:50.323Z",
+      "durationMs": 1380,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 1,
+      "outcome": "partial",
+      "tokens": {
+        "input": 421,
+        "output": 148,
+        "reasoning": 0,
+        "total": 569
+      },
+      "resources": {
+        "cpuAvgPct": 3.4,
+        "cpuPeakPct": 8.1,
+        "rssPeakMb": 37.1,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 6,
+        "testsFailed": 1,
+        "rubricScore": 0.74,
+        "regressionCount": 1
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "32023de1-fc31-40f5-acba-b134c7f8bff8",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "analysis_perf_01",
+      "taskLabel": "Distributed System Latency Audit",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:52:14.504Z",
+      "durationMs": 6191,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 1878,
+        "output": 477,
+        "reasoning": 0,
+        "total": 2355
+      },
+      "resources": {
+        "cpuAvgPct": 1.9,
+        "cpuPeakPct": 6.1,
+        "rssPeakMb": 41.5,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.92,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Planner framed the hybrid run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "c374424e-3b6f-40de-9c61-a9de9380b798",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "analysis_perf_01",
+      "taskLabel": "Distributed System Latency Audit",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:52:14.503Z",
+      "durationMs": 4967,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 1510,
+        "output": 396,
+        "reasoning": 0,
+        "total": 1906
+      },
+      "resources": {
+        "cpuAvgPct": 2,
+        "cpuPeakPct": 6.2,
+        "rssPeakMb": 41.5,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.86,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "7d043dd4-defe-4853-8e08-673a4367a1ee",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "analysis_perf_01",
+      "taskLabel": "Distributed System Latency Audit",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:52:14.501Z",
+      "durationMs": 1445,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 1,
+      "outcome": "partial",
+      "tokens": {
+        "input": 403,
+        "output": 148,
+        "reasoning": 0,
+        "total": 551
+      },
+      "resources": {
+        "cpuAvgPct": 2.5,
+        "cpuPeakPct": 8,
+        "rssPeakMb": 38.3,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 6,
+        "testsFailed": 1,
+        "rubricScore": 0.74,
+        "regressionCount": 1
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "e3fc9884-ea62-4a23-b656-2b3ea7a97f9f",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:51:51.140Z",
+      "durationMs": 5929,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 1980,
+        "output": 477,
+        "reasoning": 0,
+        "total": 2457
+      },
+      "resources": {
+        "cpuAvgPct": 2.2,
+        "cpuPeakPct": 6.8,
+        "rssPeakMb": 56.6,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.92,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Planner framed the hybrid run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "55254a2b-7d3c-4a90-b019-1c05e1ba7960",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:51:51.140Z",
+      "durationMs": 4750,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 1591,
+        "output": 396,
+        "reasoning": 0,
+        "total": 1987
+      },
+      "resources": {
+        "cpuAvgPct": 2.4,
+        "cpuPeakPct": 6.9,
+        "rssPeakMb": 56.6,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.86,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "2f856daa-c09d-49e9-84c6-450af9bfeb58",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:51:51.139Z",
+      "durationMs": 1385,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 1,
+      "outcome": "partial",
+      "tokens": {
+        "input": 421,
+        "output": 148,
+        "reasoning": 0,
+        "total": 569
+      },
+      "resources": {
+        "cpuAvgPct": 3.3,
+        "cpuPeakPct": 7.2,
+        "rssPeakMb": 56.6,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 6,
+        "testsFailed": 1,
+        "rubricScore": 0.74,
+        "regressionCount": 1
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "a0e9334d-316f-404f-b6d3-4bbefb7620a0",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:51:38.071Z",
+      "durationMs": 5930,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 1980,
+        "output": 477,
+        "reasoning": 0,
+        "total": 2457
+      },
+      "resources": {
+        "cpuAvgPct": 3.9,
+        "cpuPeakPct": 40.6,
+        "rssPeakMb": 75.7,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.92,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Planner framed the hybrid run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "60191fe5-894b-4bf2-b4aa-dd632349acd0",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:51:38.070Z",
+      "durationMs": 4759,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 1591,
+        "output": 396,
+        "reasoning": 0,
+        "total": 1987
+      },
+      "resources": {
+        "cpuAvgPct": 4.4,
+        "cpuPeakPct": 40.9,
+        "rssPeakMb": 75.7,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.86,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
+      "runId": "fd22a5eb-904c-4347-9d0b-9b6757c9144b",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "simulated",
+      "startedAt": "2026-05-14T06:51:38.064Z",
+      "durationMs": 1405,
+      "modelFamily": "gemini-2.5-flash (simulated)",
+      "agentCount": 1,
+      "outcome": "partial",
+      "tokens": {
+        "input": 421,
+        "output": 148,
+        "reasoning": 0,
+        "total": 569
+      },
+      "resources": {
+        "cpuAvgPct": 6.1,
+        "cpuPeakPct": 15.9,
+        "rssPeakMb": 69,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 6,
+        "testsFailed": 1,
+        "rubricScore": 0.74,
+        "regressionCount": 1
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "simulated",
+      "notes": "Gemini credentials are not configured, so benchmark runs use a deterministic simulated model. Trace: Final synthesizer produced the benchmark answer. Summary: Diagnosis: the session expiry path likely mixes wall-clock and elapsed-time assumptions.\nPlan: centralize expiry math, add focused regression tests, and stage rollout behind metrics.\nResidual risks: refresh token races and stale persisted …"
+    },
+    {
       "runId": "762b0e3b-754c-4792-a94c-818fdbb374dd",
       "tool": "langgraph-gemini",
       "architecture": "hybrid",

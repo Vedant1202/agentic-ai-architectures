@@ -123,13 +123,14 @@ function buildArchitectureGraph(
     emitNodeEvent({ node: "plan", label: "Planner", status: "running" });
     const startTokens = runtime.getTokenMetrics().total;
 
-    const plannerBrief = await runtime.generateText(
+    const plannerBrief = await runtime.generateTextStream(
       "planner",
       [
         "You are the orchestration planner for a coding benchmark.",
         "Summarize the approach in 3 bullets, explicitly naming what should be delegated."
       ].join(" "),
-      taskBlock(state.taskLabel, state.taskPrompt)
+      taskBlock(state.taskLabel, state.taskPrompt),
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "plan", text } })
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -149,14 +150,15 @@ function buildArchitectureGraph(
     emitNodeEvent({ node: "research", label: "Researcher", status: "running" });
     const startTokens = runtime.getTokenMetrics().total;
 
-    const researchNotes = await runtime.generateText(
+    const researchNotes = await runtime.generateTextStream(
       "researcher",
       [
         "You are the technical researcher inside a multi-agent benchmark.",
         "Focus on likely causes, missing information, and experiments.",
         "Be concise but specific."
       ].join(" "),
-      [taskBlock(state.taskLabel, state.taskPrompt), `Planner brief:\n${state.plannerBrief}`].join("\n\n")
+      [taskBlock(state.taskLabel, state.taskPrompt), `Planner brief:\n${state.plannerBrief}`].join("\n\n"),
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "research", text } })
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -176,7 +178,7 @@ function buildArchitectureGraph(
     emitNodeEvent({ node: "implement", label: "Implementer", status: "running" });
     const startTokens = runtime.getTokenMetrics().total;
 
-    const implementationPlan = await runtime.generateText(
+    const implementationPlan = await runtime.generateTextStream(
       "implementer",
       [
         "You are the implementation specialist.",
@@ -187,7 +189,8 @@ function buildArchitectureGraph(
         taskBlock(state.taskLabel, state.taskPrompt),
         `Planner brief:\n${state.plannerBrief}`,
         `Research notes:\n${state.researchNotes}`
-      ].join("\n\n")
+      ].join("\n\n"),
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "implement", text } })
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -207,7 +210,7 @@ function buildArchitectureGraph(
     emitNodeEvent({ node: "review", label: "Verifier", status: "running" });
     const startTokens = runtime.getTokenMetrics().total;
 
-    const reviewNotes = await runtime.generateText(
+    const reviewNotes = await runtime.generateTextStream(
       "reviewer",
       [
         "You are the verifier in a benchmark harness.",
@@ -216,7 +219,8 @@ function buildArchitectureGraph(
       [
         taskBlock(state.taskLabel, state.taskPrompt),
         `Implementation plan:\n${state.implementationPlan}`
-      ].join("\n\n")
+      ].join("\n\n"),
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "review", text } })
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -236,10 +240,11 @@ function buildArchitectureGraph(
     emitNodeEvent({ node: "peer_a", label: "Peer A", status: "running" });
     const startTokens = runtime.getTokenMetrics().total;
 
-    const implementationPlan = await runtime.generateText(
+    const implementationPlan = await runtime.generateTextStream(
       "peer_a",
       "You are peer A in an emulated decentralized benchmark. Produce an independent solution sketch.",
-      taskBlock(state.taskLabel, state.taskPrompt)
+      taskBlock(state.taskLabel, state.taskPrompt),
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_a", text } })
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -259,10 +264,11 @@ function buildArchitectureGraph(
     emitNodeEvent({ node: "peer_b", label: "Peer B", status: "running" });
     const startTokens = runtime.getTokenMetrics().total;
 
-    const researchNotes = await runtime.generateText(
+    const researchNotes = await runtime.generateTextStream(
       "peer_b",
       "You are peer B in an emulated decentralized benchmark. Produce an alternative diagnosis and tests.",
-      taskBlock(state.taskLabel, state.taskPrompt)
+      taskBlock(state.taskLabel, state.taskPrompt),
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_b", text } })
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -282,7 +288,7 @@ function buildArchitectureGraph(
     emitNodeEvent({ node: "peer_merge", label: "Peer C (Merge)", status: "running" });
     const startTokens = runtime.getTokenMetrics().total;
 
-    const reviewNotes = await runtime.generateText(
+    const reviewNotes = await runtime.generateTextStream(
       "peer_merge",
       [
         "You are peer C merging conflicting ideas in an emulated decentralized benchmark.",
@@ -292,7 +298,8 @@ function buildArchitectureGraph(
         taskBlock(state.taskLabel, state.taskPrompt),
         `Peer A:\n${state.implementationPlan}`,
         `Peer B:\n${state.researchNotes}`
-      ].join("\n\n")
+      ].join("\n\n"),
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "peer_merge", text } })
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -312,7 +319,7 @@ function buildArchitectureGraph(
     emitNodeEvent({ node: "finalize", label: "Finalizer", status: "running" });
     const startTokens = runtime.getTokenMetrics().total;
 
-    const finalAnswer = await runtime.generateText(
+    const finalAnswer = await runtime.generateTextStream(
       "finalizer",
       [
         "You are the final synthesizer for a coding benchmark run.",
@@ -326,7 +333,8 @@ function buildArchitectureGraph(
         optionalBlock("Review notes", state.reviewNotes)
       ]
         .filter(Boolean)
-        .join("\n\n")
+        .join("\n\n"),
+      (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "finalize", text } })
     );
 
     const tokensUsed = runtime.getTokenMetrics().total - startTokens;
@@ -384,6 +392,58 @@ function buildArchitectureGraph(
         .addEdge("peer_a", "peer_b")
         .addEdge("peer_b", "peer_merge")
         .addEdge("peer_merge", "finalize")
+        .addEdge("finalize", END);
+      break;
+    case "dynamic_swarm":
+      builder.addNode("manager", async (state: typeof GraphState.State) => {
+        emitNodeEvent({ node: "manager", label: "Swarm Manager", status: "running" });
+        const startTokens = runtime.getTokenMetrics().total;
+        
+        const managerBrief = await runtime.generateTextStream(
+          "planner", 
+          "You are the swarm manager. Describe the sub-agents needed.",
+          taskBlock(state.taskLabel, state.taskPrompt),
+          (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: "manager", text } })
+        );
+
+        const subagents = ["DB Expert", "UI Specialist", "Security Auditor"];
+        
+        const tokensUsed = runtime.getTokenMetrics().total - startTokens;
+        emitNodeEvent({ node: "manager", label: "Swarm Manager", status: "complete", output: managerBrief, tokens: tokensUsed });
+
+        const subAnswers: string[] = [];
+        await Promise.all(subagents.map(async (agentLabel, index) => {
+          const nodeId = `subagent_${index}`;
+          onUpdate?.({ architecture, type: "graph_edge", data: { source: "manager", target: nodeId } });
+          
+          emitNodeEvent({ node: nodeId, label: agentLabel, status: "running" });
+          const subTokens = runtime.getTokenMetrics().total;
+          
+          const ans = await runtime.generateTextStream(
+            "researcher",
+            `You are ${agentLabel}. Solve your part.`,
+            taskBlock(state.taskLabel, state.taskPrompt),
+            (text) => onUpdate?.({ architecture, type: "node_stream", data: { node: nodeId, text } })
+          );
+
+          const used = runtime.getTokenMetrics().total - subTokens;
+          emitNodeEvent({ node: nodeId, label: agentLabel, status: "complete", output: ans, tokens: used });
+          
+          onUpdate?.({ architecture, type: "graph_edge", data: { source: nodeId, target: "finalize" } });
+          subAnswers.push(ans);
+        }));
+
+        const finalPlan = subAnswers.join("\n\n");
+        return {
+          implementationPlan: finalPlan, 
+          handoffs: 3,
+          modelCalls: 1 + subagents.length
+        };
+      });
+      builder.addNode("finalize", finalizeNode);
+      builder
+        .addEdge(START, "manager")
+        .addEdge("manager", "finalize")
         .addEdge("finalize", END);
       break;
   }
@@ -457,6 +517,48 @@ class Runtime {
 
     this.recordUsage(response.usage_metadata);
     return response.text;
+  }
+
+  async generateTextStream(
+    role: string,
+    systemPrompt: string,
+    userPrompt: string,
+    onChunk: (text: string) => void
+  ) {
+    this.calls += 1;
+
+    if (!this.model) {
+      const text = buildSimulatedResponse(role, userPrompt);
+      const words = text.split(" ");
+      let current = "";
+      for (const word of words) {
+        current += (current ? " " : "") + word;
+        onChunk(current);
+        await new Promise(r => setTimeout(r, 25)); // Smooth fake streaming
+      }
+      this.usage.input += estimateTokens(systemPrompt) + estimateTokens(userPrompt);
+      this.usage.output += estimateTokens(text);
+      this.usage.total = this.usage.input + this.usage.output + this.usage.reasoning;
+      return text;
+    }
+
+    const stream = await this.model.stream([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ]);
+
+    let fullText = "";
+    for await (const chunk of stream) {
+      if (chunk.content) {
+        fullText += typeof chunk.content === "string" ? chunk.content : JSON.stringify(chunk.content);
+        onChunk(fullText);
+      }
+    }
+    
+    this.usage.input += estimateTokens(systemPrompt) + estimateTokens(userPrompt);
+    this.usage.output += estimateTokens(fullText);
+    this.usage.total = this.usage.input + this.usage.output + this.usage.reasoning;
+    return fullText;
   }
 
   async generateJson<T>(
@@ -743,6 +845,14 @@ function buildSimulatedEvaluation(architecture: ArchitectureName): Evaluation {
       testsFailed: 1,
       regressionCount: 1,
       rationale: "Independent peers increased idea diversity but also merge overhead."
+    },
+    dynamic_swarm: {
+      rubricScore: 0.95,
+      outcome: "pass",
+      testsPassed: 8,
+      testsFailed: 0,
+      regressionCount: 0,
+      rationale: "Dynamic sub-agents adapted perfectly to the multi-faceted problem."
     }
   };
 
@@ -782,6 +892,8 @@ function labelForArchitecture(architecture: ArchitectureName) {
       return "hybrid";
     case "decentralized_emulated":
       return "decentralized emulation";
+    case "dynamic_swarm":
+      return "dynamic swarm";
   }
 }
 
@@ -795,6 +907,8 @@ function agentCountForArchitecture(architecture: ArchitectureName) {
       return 4;
     case "decentralized_emulated":
       return 4;
+    case "dynamic_swarm":
+      return 5;
   }
 }
 

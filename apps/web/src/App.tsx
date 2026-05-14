@@ -18,7 +18,8 @@ interface LiveRunState {
   architecture: ArchitectureName;
   status: "idle" | "running" | "complete" | "error";
   trace: string[];
-  nodeEvents: Record<string, NodeTraceEvent>;
+  nodeEvents: Record<string, NodeTraceEvent & { streamedText?: string }>;
+  dynamicEdges: { source: string; target: string }[];
   metrics: {
     cpuAvgPct: number;
     cpuPeakPct: number;
@@ -65,6 +66,7 @@ export default function App() {
         status: "running",
         trace: [],
         nodeEvents: {},
+        dynamicEdges: [],
         metrics: { cpuAvgPct: 0, cpuPeakPct: 0, rssPeakMb: 0 },
       };
     });
@@ -105,8 +107,39 @@ export default function App() {
               ...current,
               nodeEvents: {
                 ...current.nodeEvents,
-                [event.node]: event,
+                [event.node]: {
+                  ...current.nodeEvents[event.node],
+                  ...event,
+                },
               },
+            },
+          };
+        }
+
+        if (update.type === "node_stream") {
+          const { node, text } = update.data;
+          return {
+            ...prev,
+            [update.architecture]: {
+              ...current,
+              nodeEvents: {
+                ...current.nodeEvents,
+                [node]: {
+                  ...current.nodeEvents[node],
+                  streamedText: text,
+                },
+              },
+            },
+          };
+        }
+
+        if (update.type === "graph_edge") {
+          const { source, target } = update.data;
+          return {
+            ...prev,
+            [update.architecture]: {
+              ...current,
+              dynamicEdges: [...current.dynamicEdges, { source, target }],
             },
           };
         }
@@ -407,7 +440,7 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
                     {run.status}
                   </span>
                 </div>
-                <AnimatedAgentGraph architecture={run.architecture} nodeEvents={run.nodeEvents} />
+                <AnimatedAgentGraph architecture={run.architecture} nodeEvents={run.nodeEvents} dynamicEdges={run.dynamicEdges} />
             </div>
           );
         })}
