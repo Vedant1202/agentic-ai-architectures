@@ -15,7 +15,7 @@ import type {
   RunnerStatus
 } from "@agent-visibility/shared";
 
-const DEFAULT_MODEL = "gemma-4-26b-a4b-it";
+const DEFAULT_MODEL = "gemma-3-27b";
 const getGoogleKey = () => process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
 
 const GraphState = Annotation.Root({
@@ -370,7 +370,14 @@ function buildArchitectureGraph(
         onUpdate?.({ architecture, type: "graph_edge", data: { source: "research", target: "finalize" } });
         onUpdate?.({ architecture, type: "graph_edge", data: { source: "implement", target: "finalize" } });
         
-        return { ...pState, ...rState, ...iState, handoffs: 3, modelCalls: 3 };
+        return { 
+          ...pState, 
+          ...rState, 
+          ...iState, 
+          trace: [...(pState.trace || []), ...(rState.trace || []), ...(iState.trace || [])],
+          handoffs: 3, 
+          modelCalls: 3 
+        };
       });
       builder.addNode("finalize", finalizeNode);
       builder.addEdge(START, "plan").addEdge("plan", "finalize").addEdge("finalize", END);
@@ -394,7 +401,15 @@ function buildArchitectureGraph(
         
         onUpdate?.({ architecture, type: "graph_edge", data: { source: "review", target: "finalize" } });
         
-        return { ...pState, ...paState, ...pbState, ...revState, handoffs: 4, modelCalls: 4 };
+        return { 
+          ...pState, 
+          ...paState, 
+          ...pbState, 
+          ...revState, 
+          trace: [...(pState.trace || []), ...(paState.trace || []), ...(pbState.trace || []), ...(revState.trace || [])],
+          handoffs: 4, 
+          modelCalls: 4 
+        };
       });
       builder.addNode("finalize", finalizeNode);
       builder.addEdge(START, "plan").addEdge("plan", "finalize").addEdge("finalize", END);
@@ -410,11 +425,18 @@ function buildArchitectureGraph(
         onUpdate?.({ architecture, type: "graph_edge", data: { source: "peer_a", target: "peer_merge" } });
         onUpdate?.({ architecture, type: "graph_edge", data: { source: "peer_b", target: "peer_merge" } });
         
-        const mState = await peerMergeNode({ ...state, ...paState, ...pbState });
+        const pmState = await peerMergeNode({ ...state, ...paState, ...pbState });
         
         onUpdate?.({ architecture, type: "graph_edge", data: { source: "peer_merge", target: "finalize" } });
         
-        return { ...paState, ...pbState, ...mState, handoffs: 3, modelCalls: 3 };
+        return { 
+          ...paState, 
+          ...pbState, 
+          ...pmState, 
+          trace: [...(paState.trace || []), ...(pbState.trace || []), ...(pmState.trace || [])],
+          handoffs: 3, 
+          modelCalls: 3 
+        };
       });
       builder.addNode("finalize", finalizeNode);
       builder.addEdge(START, "start_peers").addEdge("start_peers", "finalize").addEdge("finalize", END);
