@@ -10,6 +10,7 @@ import type {
   BenchmarkTaskDefinition,
   ExperimentRun,
   LiveUpdate,
+  NodeTraceEvent,
   Outcome,
   RunnerStatus
 } from "@agent-visibility/shared";
@@ -112,7 +113,16 @@ function buildArchitectureGraph(
     }
   };
 
+  const emitNodeEvent = (event: NodeTraceEvent) => {
+    if (onUpdate) {
+      onUpdate({ architecture, type: "node_event", data: event });
+    }
+  };
+
   const planNode = async (state: typeof GraphState.State) => {
+    emitNodeEvent({ node: "plan", label: "Planner", status: "running" });
+    const startTokens = runtime.getTokenMetrics().total;
+
     const plannerBrief = await runtime.generateText(
       "planner",
       [
@@ -121,6 +131,9 @@ function buildArchitectureGraph(
       ].join(" "),
       taskBlock(state.taskLabel, state.taskPrompt)
     );
+
+    const tokensUsed = runtime.getTokenMetrics().total - startTokens;
+    emitNodeEvent({ node: "plan", label: "Planner", status: "complete", output: plannerBrief, tokens: tokensUsed });
 
     const line = `Planner framed the ${labelForArchitecture(state.architecture)} run.`;
     emitTrace(line);
@@ -133,6 +146,9 @@ function buildArchitectureGraph(
   };
 
   const researchNode = async (state: typeof GraphState.State) => {
+    emitNodeEvent({ node: "research", label: "Researcher", status: "running" });
+    const startTokens = runtime.getTokenMetrics().total;
+
     const researchNotes = await runtime.generateText(
       "researcher",
       [
@@ -142,6 +158,9 @@ function buildArchitectureGraph(
       ].join(" "),
       [taskBlock(state.taskLabel, state.taskPrompt), `Planner brief:\n${state.plannerBrief}`].join("\n\n")
     );
+
+    const tokensUsed = runtime.getTokenMetrics().total - startTokens;
+    emitNodeEvent({ node: "research", label: "Researcher", status: "complete", output: researchNotes, tokens: tokensUsed });
 
     const line = "Research specialist mapped risks and diagnostics.";
     emitTrace(line);
@@ -154,6 +173,9 @@ function buildArchitectureGraph(
   };
 
   const implementNode = async (state: typeof GraphState.State) => {
+    emitNodeEvent({ node: "implement", label: "Implementer", status: "running" });
+    const startTokens = runtime.getTokenMetrics().total;
+
     const implementationPlan = await runtime.generateText(
       "implementer",
       [
@@ -168,6 +190,9 @@ function buildArchitectureGraph(
       ].join("\n\n")
     );
 
+    const tokensUsed = runtime.getTokenMetrics().total - startTokens;
+    emitNodeEvent({ node: "implement", label: "Implementer", status: "complete", output: implementationPlan, tokens: tokensUsed });
+
     const line = "Implementation specialist proposed code and test changes.";
     emitTrace(line);
     return {
@@ -179,6 +204,9 @@ function buildArchitectureGraph(
   };
 
   const reviewNode = async (state: typeof GraphState.State) => {
+    emitNodeEvent({ node: "review", label: "Verifier", status: "running" });
+    const startTokens = runtime.getTokenMetrics().total;
+
     const reviewNotes = await runtime.generateText(
       "reviewer",
       [
@@ -191,6 +219,9 @@ function buildArchitectureGraph(
       ].join("\n\n")
     );
 
+    const tokensUsed = runtime.getTokenMetrics().total - startTokens;
+    emitNodeEvent({ node: "review", label: "Verifier", status: "complete", output: reviewNotes, tokens: tokensUsed });
+
     const line = "Verifier reviewed the proposed solution for gaps.";
     emitTrace(line);
     return {
@@ -202,11 +233,17 @@ function buildArchitectureGraph(
   };
 
   const peerANode = async (state: typeof GraphState.State) => {
+    emitNodeEvent({ node: "peer_a", label: "Peer A", status: "running" });
+    const startTokens = runtime.getTokenMetrics().total;
+
     const implementationPlan = await runtime.generateText(
       "peer_a",
       "You are peer A in an emulated decentralized benchmark. Produce an independent solution sketch.",
       taskBlock(state.taskLabel, state.taskPrompt)
     );
+
+    const tokensUsed = runtime.getTokenMetrics().total - startTokens;
+    emitNodeEvent({ node: "peer_a", label: "Peer A", status: "complete", output: implementationPlan, tokens: tokensUsed });
 
     const line = "Peer A created an independent solution sketch.";
     emitTrace(line);
@@ -219,11 +256,17 @@ function buildArchitectureGraph(
   };
 
   const peerBNode = async (state: typeof GraphState.State) => {
+    emitNodeEvent({ node: "peer_b", label: "Peer B", status: "running" });
+    const startTokens = runtime.getTokenMetrics().total;
+
     const researchNotes = await runtime.generateText(
       "peer_b",
       "You are peer B in an emulated decentralized benchmark. Produce an alternative diagnosis and tests.",
       taskBlock(state.taskLabel, state.taskPrompt)
     );
+
+    const tokensUsed = runtime.getTokenMetrics().total - startTokens;
+    emitNodeEvent({ node: "peer_b", label: "Peer B", status: "complete", output: researchNotes, tokens: tokensUsed });
 
     const line = "Peer B created an alternative diagnosis and test lens.";
     emitTrace(line);
@@ -236,6 +279,9 @@ function buildArchitectureGraph(
   };
 
   const peerMergeNode = async (state: typeof GraphState.State) => {
+    emitNodeEvent({ node: "peer_merge", label: "Peer C (Merge)", status: "running" });
+    const startTokens = runtime.getTokenMetrics().total;
+
     const reviewNotes = await runtime.generateText(
       "peer_merge",
       [
@@ -249,6 +295,9 @@ function buildArchitectureGraph(
       ].join("\n\n")
     );
 
+    const tokensUsed = runtime.getTokenMetrics().total - startTokens;
+    emitNodeEvent({ node: "peer_merge", label: "Peer C (Merge)", status: "complete", output: reviewNotes, tokens: tokensUsed });
+
     const line = "Peer C merged the independent proposals.";
     emitTrace(line);
     return {
@@ -260,6 +309,9 @@ function buildArchitectureGraph(
   };
 
   const finalizeNode = async (state: typeof GraphState.State) => {
+    emitNodeEvent({ node: "finalize", label: "Finalizer", status: "running" });
+    const startTokens = runtime.getTokenMetrics().total;
+
     const finalAnswer = await runtime.generateText(
       "finalizer",
       [
@@ -276,6 +328,9 @@ function buildArchitectureGraph(
         .filter(Boolean)
         .join("\n\n")
     );
+
+    const tokensUsed = runtime.getTokenMetrics().total - startTokens;
+    emitNodeEvent({ node: "finalize", label: "Finalizer", status: "complete", output: finalAnswer, tokens: tokensUsed });
 
     const line = "Final synthesizer produced the benchmark answer.";
     emitTrace(line);

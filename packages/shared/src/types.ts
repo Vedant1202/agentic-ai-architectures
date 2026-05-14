@@ -117,9 +117,17 @@ export interface BenchmarkRunRequest {
   customPrompt?: string;
 }
 
+export interface NodeTraceEvent {
+  node: string;
+  label: string;
+  status: "running" | "complete";
+  output?: string;
+  tokens?: number;
+}
+
 export interface LiveUpdate {
   architecture: ArchitectureName;
-  type: "trace" | "metrics" | "complete" | "error";
+  type: "trace" | "node_event" | "metrics" | "complete" | "error";
   data: any;
 }
 
