@@ -15,6 +15,7 @@ import {
   type BenchmarkTaskDefinition,
   type DatasetOverviewResponse,
   type ExperimentRun,
+  type LiveErrorDetails,
   type LiveProgressSnapshot,
   type LiveUpdate,
   type NodeTraceEvent
@@ -39,6 +40,7 @@ interface LiveRunState {
     rssPeakMb: number;
   };
   progress: LiveProgressSnapshot;
+  errorDetails?: LiveErrorDetails;
   result?: ExperimentRun;
 }
 
@@ -204,7 +206,8 @@ export default function App() {
           handoffs: 0,
           toolCalls: 0,
           tokens: { input: 0, output: 0, reasoning: 0, total: 0 }
-        }
+        },
+        errorDetails: undefined
       };
     });
     setLiveRuns(initialLiveRuns);
@@ -342,12 +345,14 @@ export default function App() {
         }
 
         if (update.type === "error") {
+          const details = normalizeLiveErrorDetails(update.data, existing);
           return {
             ...current,
             [update.architecture]: {
               ...existing,
               status: "error",
-              trace: [...existing.trace, String(update.data)]
+              errorDetails: details,
+              trace: [...existing.trace, formatLiveErrorTrace(details)]
             }
           };
         }
@@ -375,7 +380,21 @@ export default function App() {
       setLiveRuns((current) => {
         const nextRuns: Record<string, LiveRunState> = {};
         Object.entries(current).forEach(([key, value]) => {
-          nextRuns[key] = value.status === "complete" ? value : { ...value, status: "error" };
+          nextRuns[key] = value.status === "complete"
+            ? value
+            : {
+                ...value,
+                status: "error",
+                errorDetails: {
+                  kind: "stream_disconnect",
+                  message: "The browser lost the server event stream before the run completed.",
+                  retryable: true
+                },
+                trace: [
+                  ...value.trace,
+                  "Live stream disconnected before the run completed."
+                ]
+              };
         });
         return nextRuns;
       });
@@ -924,6 +943,14 @@ function ArchitectureRunCard({
           <strong>{summary.outcome === "pending" ? "In progress" : summary.outcome}</strong>
         </div>
 
+        {run.errorDetails && (
+          <div className="trace-item trace-item-error">
+            <strong>{formatLiveErrorTitle(run.errorDetails)}</strong>
+            <span>{run.errorDetails.message}</span>
+            {run.errorDetails.nodeLabel && <span>Active node: {run.errorDetails.nodeLabel}</span>}
+          </div>
+        )}
+
         {recentTrace.length > 0 ? (
           recentTrace.map((line, index) => (
             <div key={`${summary.architecture}-${index}`} className="trace-item">
@@ -1248,4 +1275,48 @@ function formatStatusLabel(status: LiveRunState["status"]) {
     return "Error";
   }
   return "Idle";
+}
+
+function normalizeLiveErrorDetails(
+  data: unknown,
+  run: LiveRunState
+): LiveErrorDetails {
+  if (isLiveErrorDetails(data)) {
+    return data;
+  }
+
+  const message = typeof data === "string" ? data : "Unknown runtime error.";
+  const activeNode = Object.values(run.nodeEvents).find((event) => event.status === "running");
+
+  return {
+    kind: activeNode ? "node_failure" : "unknown",
+    message,
+    node: activeNode?.node,
+    nodeLabel: activeNode?.label,
+    retryable: true
+  };
+}
+
+function isLiveErrorDetails(value: unknown): value is LiveErrorDetails {
+  return typeof value === "object" && value !== null && "kind" in value && "message" in value;
+}
+
+function formatLiveErrorTrace(error: LiveErrorDetails) {
+  const nodeLabel = error.nodeLabel ? ` while ${error.nodeLabel} was active` : "";
+  return `${formatLiveErrorTitle(error)}${nodeLabel}: ${error.message}`;
+}
+
+function formatLiveErrorTitle(error: LiveErrorDetails) {
+  switch (error.kind) {
+    case "rate_limit":
+      return "Rate limit";
+    case "network":
+      return "Network interruption";
+    case "stream_disconnect":
+      return "Stream disconnected";
+    case "node_failure":
+      return "Node failure";
+    default:
+      return "Runtime error";
+  }
 }

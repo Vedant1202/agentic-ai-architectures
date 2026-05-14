@@ -121,7 +121,7 @@ export interface BenchmarkRunRequest {
 export interface NodeTraceEvent {
   node: string;
   label: string;
-  status: "running" | "complete";
+  status: "running" | "complete" | "error";
   output?: string;
   tokens?: number;
 }
@@ -141,6 +141,14 @@ export interface LiveProgressSnapshot {
   handoffs: number;
   toolCalls: number;
   tokens: TokenMetrics;
+}
+
+export interface LiveErrorDetails {
+  kind: "node_failure" | "rate_limit" | "network" | "stream_disconnect" | "unknown";
+  message: string;
+  node?: string;
+  nodeLabel?: string;
+  retryable: boolean;
 }
 
 export interface LiveUpdate {

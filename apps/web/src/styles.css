@@ -826,6 +826,18 @@ input:focus {
   line-height: 1.55;
 }
 
+.trace-item-error {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-color: rgba(248, 113, 113, 0.26);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.trace-item-error strong {
+  color: var(--error-color);
+}
+
 .run-card__footer {
   display: flex;
   flex-wrap: wrap;

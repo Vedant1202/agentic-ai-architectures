@@ -7,7 +7,10 @@ import {
   TOOL_DEFINITIONS,
   type BenchmarkRunRequest,
   type DatasetOverviewResponse,
-  type ExperimentRun
+  type ExperimentRun,
+  type LiveErrorDetails,
+  type LiveUpdate,
+  type NodeTraceEvent
 } from "@agent-visibility/shared";
 import { runBenchmark, getRunnerStatus } from "./langgraphRunner.js";
 import { appendUserRun, loadUserRuns } from "./storage.js";
@@ -131,6 +134,7 @@ app.get("/api/benchmark-stream", async (request, response) => {
 
   try {
     const runPromises = architectures.map(async (arch) => {
+      const nodeState = new Map<string, NodeTraceEvent>();
       try {
         const runResponse = await runBenchmark(
           {
@@ -140,7 +144,10 @@ app.get("/api/benchmark-stream", async (request, response) => {
             customPrompt: taskId === "custom" ? customPrompt : undefined
           },
           task || BENCHMARK_TASKS.find(t => t.id === "custom")!,
-          (update) => sendUpdate(update)
+          (update) => {
+            trackNodeState(nodeState, update);
+            sendUpdate(update);
+          }
         );
 
         await appendUserRun(runResponse.run);
@@ -150,10 +157,11 @@ app.get("/api/benchmark-stream", async (request, response) => {
           data: runResponse.run
         });
       } catch (error) {
+        const details = buildLiveErrorDetails(error, nodeState);
         sendUpdate({
           architecture: arch,
           type: "error",
-          data: error instanceof Error ? error.message : "Unknown error"
+          data: details
         });
       }
     });
@@ -201,4 +209,59 @@ function deriveMode(sampleRuns: ExperimentRun[], userRuns: ExperimentRun[]) {
   }
 
   return "mixed" as const;
+}
+
+function trackNodeState(
+  nodeState: Map<string, NodeTraceEvent>,
+  update: LiveUpdate
+) {
+  if (update.type !== "node_event") {
+    return;
+  }
+
+  const event = update.data as NodeTraceEvent;
+  nodeState.set(event.node, event);
+}
+
+function buildLiveErrorDetails(
+  error: unknown,
+  nodeState: Map<string, NodeTraceEvent>
+): LiveErrorDetails {
+  const message = error instanceof Error ? error.message : "Unknown error";
+  const normalized = message.toLowerCase();
+  const activeNode = [...nodeState.values()].reverse().find((node) => node.status === "running");
+
+  let kind: LiveErrorDetails["kind"] = "unknown";
+  let retryable = false;
+
+  if (
+    normalized.includes("rate limit")
+    || normalized.includes("quota")
+    || normalized.includes("429")
+  ) {
+    kind = "rate_limit";
+    retryable = true;
+  } else if (
+    normalized.includes("network")
+    || normalized.includes("fetch")
+    || normalized.includes("econn")
+    || normalized.includes("timeout")
+    || normalized.includes("socket")
+    || normalized.includes("connect")
+    || normalized.includes("dns")
+  ) {
+    kind = "network";
+    retryable = true;
+  } else if (activeNode) {
+    kind = "node_failure";
+    retryable = true;
+  }
+
+  return {
+    kind,
+    message,
+    node: activeNode?.node,
+    nodeLabel: activeNode?.label,
+    retryable
+  };
 }

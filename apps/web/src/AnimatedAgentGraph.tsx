@@ -92,6 +92,7 @@ function AgentNode({ data }: NodeProps<Node<AgentNodeData>>) {
   const { label, status, tokens, streamedText, onClick } = data;
   const isRunning = status === "running";
   const isComplete = status === "complete";
+  const isInspectable = isRunning || isComplete;
 
   const borderColor = isRunning
     ? "rgba(96, 165, 250, 0.92)"
@@ -101,7 +102,7 @@ function AgentNode({ data }: NodeProps<Node<AgentNodeData>>) {
 
   return (
     <div
-      onClick={isComplete ? onClick : undefined}
+      onClick={isInspectable ? onClick : undefined}
       style={{
         position: "relative",
         minWidth: "142px",
@@ -111,7 +112,7 @@ function AgentNode({ data }: NodeProps<Node<AgentNodeData>>) {
         background: "linear-gradient(180deg, var(--graph-node-bg-strong), var(--graph-node-bg))",
         boxShadow: isRunning ? "0 18px 36px rgba(37, 99, 235, 0.22)" : "none",
         color: "var(--text-primary)",
-        cursor: isComplete ? "pointer" : "default",
+        cursor: isInspectable ? "pointer" : "default",
         transition: "transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease",
         backdropFilter: "blur(16px)"
       }}
@@ -196,9 +197,7 @@ export function AnimatedAgentGraph({
   nodeEvents: Record<string, NodeTraceEvent & { streamedText?: string }>;
   dynamicEdges?: { source: string; target: string }[];
 }) {
-  const [selectedEvent, setSelectedEvent] = useState<(NodeTraceEvent & { streamedText?: string }) | null>(
-    null
-  );
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   const { nodes: layoutNodes, edges: layoutEdges } = useMemo(() => {
     if (architecture !== "dynamic_swarm") {
@@ -260,8 +259,8 @@ export function AnimatedAgentGraph({
             tokens: event?.tokens || 0,
             streamedText: event?.streamedText,
             onClick: () => {
-              if (event?.status === "complete") {
-                setSelectedEvent(event);
+              if (event?.status === "running" || event?.status === "complete") {
+                setSelectedNodeId(node.id);
               }
             }
           }
@@ -306,6 +305,12 @@ export function AnimatedAgentGraph({
     [layoutEdges, nodeEvents]
   );
 
+  const selectedEvent = selectedNodeId ? nodeEvents[selectedNodeId] : null;
+  const selectedLabel = selectedEvent?.label
+    || (selectedNodeId ? layoutNodes.find((node) => node.id === selectedNodeId)?.label : null)
+    || "Node";
+  const selectedContent = selectedEvent?.output || selectedEvent?.streamedText || "No output captured for this node yet.";
+
   return (
     <div
       style={{
@@ -322,6 +327,13 @@ export function AnimatedAgentGraph({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        onNodeClick={(_event, node) => {
+          const nodeId = String(node.id);
+          const event = nodeEvents[nodeId];
+          if (event?.status === "running" || event?.status === "complete" || event?.status === "error") {
+            setSelectedNodeId(nodeId);
+          }
+        }}
         fitView
         fitViewOptions={{ padding: 0.28 }}
         zoomOnScroll
@@ -349,7 +361,7 @@ export function AnimatedAgentGraph({
       </ReactFlow>
 
       <AnimatePresence>
-        {selectedEvent && (
+        {selectedNodeId && (
           <motion.aside
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
@@ -392,11 +404,11 @@ export function AnimatedAgentGraph({
                 >
                   Node payload
                 </span>
-                <strong style={{ fontSize: "15px" }}>{selectedEvent.label}</strong>
+                <strong style={{ fontSize: "15px" }}>{selectedLabel}</strong>
               </div>
 
               <button
-                onClick={() => setSelectedEvent(null)}
+                onClick={() => setSelectedNodeId(null)}
                 style={{
                   border: "none",
                   background: "transparent",
@@ -425,12 +437,12 @@ export function AnimatedAgentGraph({
                 fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
               }}
             >
-              {selectedEvent.output || "No output captured for this node."}
+              {selectedContent}
             </div>
 
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
               <span style={{ color: "var(--text-secondary)" }}>Tokens</span>
-              <strong>{selectedEvent.tokens?.toLocaleString() ?? "0"}</strong>
+              <strong>{selectedEvent?.tokens?.toLocaleString() ?? "0"}</strong>
             </div>
           </motion.aside>
         )}
