@@ -1,0 +1,15 @@
+{
+  "name": "agent-visibility-project",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm --workspace @agent-visibility/api run dev",
+    "dev:web": "npm --workspace @agent-visibility/web run dev",
+    "build": "npm --workspace @agent-visibility/shared run build && npm --workspace @agent-visibility/api run build && npm --workspace @agent-visibility/web run build",
+    "typecheck": "npm run typecheck --workspaces"
+  }
+}

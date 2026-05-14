@@ -1,0 +1,405 @@
+{
+  "runs": [
+    {
+      "runId": "codex-auth-single-01",
+      "tool": "codex",
+      "architecture": "single",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Bugfix auth session expiry",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T20:00:00Z",
+      "durationMs": 412000,
+      "modelFamily": "gpt-5.5",
+      "agentCount": 1,
+      "outcome": "partial",
+      "tokens": {
+        "input": 10940,
+        "output": 2610,
+        "reasoning": 1890,
+        "total": 15440,
+        "costUsd": 0.14
+      },
+      "resources": {
+        "cpuAvgPct": 29.8,
+        "cpuPeakPct": 67.4,
+        "rssPeakMb": 832,
+        "childProcessCount": 5,
+        "toolCallCount": 21
+      },
+      "quality": {
+        "testsPassed": 15,
+        "testsFailed": 2,
+        "rubricScore": 0.69,
+        "regressionCount": 1
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 1,
+        "mergeConflicts": 0,
+        "reviewLoops": 2
+      },
+      "notes": "Single-threaded run spent a long time searching for the session edge case."
+    },
+    {
+      "runId": "codex-auth-centralized-01",
+      "tool": "codex",
+      "architecture": "centralized",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Bugfix auth session expiry",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T20:10:00Z",
+      "durationMs": 291000,
+      "modelFamily": "gpt-5.5 + gpt-5.4-mini",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 13100,
+        "output": 3320,
+        "reasoning": 2260,
+        "total": 18680,
+        "costUsd": 0.18
+      },
+      "resources": {
+        "cpuAvgPct": 35.9,
+        "cpuPeakPct": 82.1,
+        "rssPeakMb": 1104,
+        "childProcessCount": 8,
+        "toolCallCount": 27
+      },
+      "quality": {
+        "testsPassed": 17,
+        "testsFailed": 0,
+        "rubricScore": 0.88,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "notes": "Coordinator delegated log analysis and test-gap review before patching."
+    },
+    {
+      "runId": "codex-auth-hybrid-01",
+      "tool": "codex",
+      "architecture": "hybrid",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Bugfix auth session expiry",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T20:20:00Z",
+      "durationMs": 248000,
+      "modelFamily": "gpt-5.5 + gpt-5.4-mini",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 14750,
+        "output": 3710,
+        "reasoning": 2490,
+        "total": 20950,
+        "costUsd": 0.2
+      },
+      "resources": {
+        "cpuAvgPct": 37.7,
+        "cpuPeakPct": 88.5,
+        "rssPeakMb": 1228,
+        "childProcessCount": 9,
+        "toolCallCount": 32
+      },
+      "quality": {
+        "testsPassed": 17,
+        "testsFailed": 0,
+        "rubricScore": 0.92,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 5,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "notes": "Specialist review agent improved confidence before final edit."
+    },
+    {
+      "runId": "codex-auth-decentralized-01",
+      "tool": "codex",
+      "architecture": "decentralized_emulated",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Bugfix auth session expiry",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T20:30:00Z",
+      "durationMs": 334000,
+      "modelFamily": "gpt-5.4-mini",
+      "agentCount": 4,
+      "outcome": "partial",
+      "tokens": {
+        "input": 15680,
+        "output": 4010,
+        "reasoning": 1820,
+        "total": 21510,
+        "costUsd": 0.12
+      },
+      "resources": {
+        "cpuAvgPct": 42.1,
+        "cpuPeakPct": 91.3,
+        "rssPeakMb": 1368,
+        "childProcessCount": 11,
+        "toolCallCount": 36
+      },
+      "quality": {
+        "testsPassed": 16,
+        "testsFailed": 1,
+        "rubricScore": 0.76,
+        "regressionCount": 1
+      },
+      "coordination": {
+        "handoffs": 8,
+        "retries": 2,
+        "mergeConflicts": 1,
+        "reviewLoops": 2
+      },
+      "notes": "Peer-style coordination increased overhead and one conflicting edit slipped in."
+    },
+    {
+      "runId": "codex-refactor-single-01",
+      "tool": "codex",
+      "architecture": "single",
+      "taskId": "refactor_parser_01",
+      "taskLabel": "Refactor CSV parser module",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T21:00:00Z",
+      "durationMs": 497000,
+      "modelFamily": "gpt-5.5",
+      "agentCount": 1,
+      "outcome": "partial",
+      "tokens": {
+        "input": 18240,
+        "output": 4480,
+        "reasoning": 2980,
+        "total": 25700,
+        "costUsd": 0.23
+      },
+      "resources": {
+        "cpuAvgPct": 31.5,
+        "cpuPeakPct": 70.2,
+        "rssPeakMb": 910,
+        "childProcessCount": 6,
+        "toolCallCount": 24
+      },
+      "quality": {
+        "testsPassed": 19,
+        "testsFailed": 2,
+        "rubricScore": 0.72,
+        "regressionCount": 1
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 1,
+        "mergeConflicts": 0,
+        "reviewLoops": 2
+      },
+      "notes": "Large file understanding made the single-agent pass slower."
+    },
+    {
+      "runId": "codex-refactor-centralized-01",
+      "tool": "codex",
+      "architecture": "centralized",
+      "taskId": "refactor_parser_01",
+      "taskLabel": "Refactor CSV parser module",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T21:10:00Z",
+      "durationMs": 352000,
+      "modelFamily": "gpt-5.5 + gpt-5.4-mini",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 20110,
+        "output": 5100,
+        "reasoning": 3110,
+        "total": 28320,
+        "costUsd": 0.27
+      },
+      "resources": {
+        "cpuAvgPct": 39.8,
+        "cpuPeakPct": 86.8,
+        "rssPeakMb": 1216,
+        "childProcessCount": 9,
+        "toolCallCount": 31
+      },
+      "quality": {
+        "testsPassed": 21,
+        "testsFailed": 0,
+        "rubricScore": 0.9,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "notes": "Coordinator split parser extraction from fixture updates."
+    },
+    {
+      "runId": "codex-refactor-hybrid-01",
+      "tool": "codex",
+      "architecture": "hybrid",
+      "taskId": "refactor_parser_01",
+      "taskLabel": "Refactor CSV parser module",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T21:20:00Z",
+      "durationMs": 308000,
+      "modelFamily": "gpt-5.5 + gpt-5.4-mini",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 22680,
+        "output": 5760,
+        "reasoning": 3390,
+        "total": 31830,
+        "costUsd": 0.31
+      },
+      "resources": {
+        "cpuAvgPct": 41.4,
+        "cpuPeakPct": 89.7,
+        "rssPeakMb": 1334,
+        "childProcessCount": 10,
+        "toolCallCount": 35
+      },
+      "quality": {
+        "testsPassed": 21,
+        "testsFailed": 0,
+        "rubricScore": 0.95,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 6,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "notes": "Verifier agent caught a naming mismatch before final write."
+    },
+    {
+      "runId": "codex-refactor-decentralized-01",
+      "tool": "codex",
+      "architecture": "decentralized_emulated",
+      "taskId": "refactor_parser_01",
+      "taskLabel": "Refactor CSV parser module",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T21:30:00Z",
+      "durationMs": 401000,
+      "modelFamily": "gpt-5.4-mini",
+      "agentCount": 4,
+      "outcome": "partial",
+      "tokens": {
+        "input": 23590,
+        "output": 6040,
+        "reasoning": 2140,
+        "total": 31770,
+        "costUsd": 0.18
+      },
+      "resources": {
+        "cpuAvgPct": 45.6,
+        "cpuPeakPct": 93.8,
+        "rssPeakMb": 1442,
+        "childProcessCount": 12,
+        "toolCallCount": 41
+      },
+      "quality": {
+        "testsPassed": 20,
+        "testsFailed": 1,
+        "rubricScore": 0.8,
+        "regressionCount": 1
+      },
+      "coordination": {
+        "handoffs": 9,
+        "retries": 2,
+        "mergeConflicts": 1,
+        "reviewLoops": 2
+      },
+      "notes": "Emulated peer autonomy raised CPU and edit-conflict risk."
+    },
+    {
+      "runId": "claude-auth-single-01",
+      "tool": "claude-code",
+      "architecture": "single",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Bugfix auth session expiry",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T22:00:00Z",
+      "durationMs": 388000,
+      "modelFamily": "sonnet",
+      "agentCount": 1,
+      "outcome": "pass",
+      "tokens": {
+        "input": 11880,
+        "output": 2790,
+        "reasoning": 0,
+        "total": 14670,
+        "costUsd": 0.16
+      },
+      "resources": {
+        "cpuAvgPct": 27.2,
+        "cpuPeakPct": 62.9,
+        "rssPeakMb": 804,
+        "childProcessCount": 5,
+        "toolCallCount": 20
+      },
+      "quality": {
+        "testsPassed": 17,
+        "testsFailed": 0,
+        "rubricScore": 0.85,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "notes": "Included as a cross-tool baseline for expansion."
+    },
+    {
+      "runId": "claude-auth-hybrid-01",
+      "tool": "claude-code",
+      "architecture": "hybrid",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Bugfix auth session expiry",
+      "dataset": "sample",
+      "startedAt": "2026-05-13T22:10:00Z",
+      "durationMs": 233000,
+      "modelFamily": "sonnet + haiku",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 13990,
+        "output": 3520,
+        "reasoning": 0,
+        "total": 17510,
+        "costUsd": 0.19
+      },
+      "resources": {
+        "cpuAvgPct": 33.3,
+        "cpuPeakPct": 76.5,
+        "rssPeakMb": 1110,
+        "childProcessCount": 8,
+        "toolCallCount": 29
+      },
+      "quality": {
+        "testsPassed": 17,
+        "testsFailed": 0,
+        "rubricScore": 0.93,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "notes": "Shows where richer built-in telemetry could fit in later."
+    }
+  ]
+}
+
