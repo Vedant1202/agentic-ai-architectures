@@ -1,38 +1,42 @@
-import React, { useMemo, useState } from "react";
-import { 
-  ReactFlow, 
-  Controls, 
-  Background, 
-  MarkerType, 
-  Handle, 
-  Position, 
-  Edge, 
-  NodeProps 
+import { useMemo, useState } from "react";
+import {
+  Background,
+  Controls,
+  Handle,
+  MarkerType,
+  Position,
+  ReactFlow,
+  type Node,
+  type NodeProps
 } from "@xyflow/react";
+import { AnimatePresence, motion } from "framer-motion";
 import "@xyflow/react/dist/style.css";
-import { motion, AnimatePresence } from "framer-motion";
-import type { NodeTraceEvent, ArchitectureName } from "@agent-visibility/shared";
-
-// ---------------------------------------------------------
-// Layout Definitions
-// ---------------------------------------------------------
+import type { ArchitectureName, NodeTraceEvent } from "@agent-visibility/shared";
 
 interface LayoutConfig {
   nodes: { id: string; x: number; y: number; label: string }[];
   edges: { source: string; target: string }[];
 }
 
+interface AgentNodeData extends Record<string, unknown> {
+  label: string;
+  status: "pending" | "running" | "complete";
+  tokens: number;
+  streamedText?: string;
+  onClick: () => void;
+}
+
 const LAYOUTS: Record<ArchitectureName, LayoutConfig> = {
   single: {
-    nodes: [{ id: "finalize", x: 250, y: 100, label: "Finalizer" }],
+    nodes: [{ id: "finalize", x: 220, y: 100, label: "Finalizer" }],
     edges: []
   },
   centralized: {
     nodes: [
-      { id: "plan", x: 50, y: 100, label: "Coordinator" },
-      { id: "research", x: 250, y: 20, label: "Researcher" },
-      { id: "implement", x: 250, y: 180, label: "Implementer" },
-      { id: "finalize", x: 450, y: 100, label: "Finalizer" }
+      { id: "plan", x: 36, y: 100, label: "Coordinator" },
+      { id: "research", x: 232, y: 24, label: "Researcher" },
+      { id: "implement", x: 232, y: 176, label: "Implementer" },
+      { id: "finalize", x: 428, y: 100, label: "Finalizer" }
     ],
     edges: [
       { source: "plan", target: "research" },
@@ -43,11 +47,11 @@ const LAYOUTS: Record<ArchitectureName, LayoutConfig> = {
   },
   hybrid: {
     nodes: [
-      { id: "plan", x: 50, y: 100, label: "Coordinator" },
-      { id: "peer_a", x: 250, y: 20, label: "Peer A" },
-      { id: "peer_b", x: 250, y: 180, label: "Peer B" },
-      { id: "review", x: 450, y: 100, label: "Reviewer" },
-      { id: "finalize", x: 650, y: 100, label: "Finalizer" }
+      { id: "plan", x: 24, y: 100, label: "Coordinator" },
+      { id: "peer_a", x: 210, y: 24, label: "Peer A" },
+      { id: "peer_b", x: 210, y: 176, label: "Peer B" },
+      { id: "review", x: 396, y: 100, label: "Reviewer" },
+      { id: "finalize", x: 582, y: 100, label: "Finalizer" }
     ],
     edges: [
       { source: "plan", target: "peer_a" },
@@ -59,10 +63,10 @@ const LAYOUTS: Record<ArchitectureName, LayoutConfig> = {
   },
   decentralized: {
     nodes: [
-      { id: "peer_a", x: 50, y: 20, label: "Peer A" },
-      { id: "peer_b", x: 50, y: 180, label: "Peer B" },
-      { id: "peer_merge", x: 250, y: 100, label: "Peer Merge" },
-      { id: "finalize", x: 450, y: 100, label: "Finalizer" }
+      { id: "peer_a", x: 36, y: 24, label: "Peer A" },
+      { id: "peer_b", x: 36, y: 176, label: "Peer B" },
+      { id: "peer_merge", x: 240, y: 100, label: "Peer Merge" },
+      { id: "finalize", x: 444, y: 100, label: "Finalizer" }
     ],
     edges: [
       { source: "peer_a", target: "peer_merge" },
@@ -71,104 +75,107 @@ const LAYOUTS: Record<ArchitectureName, LayoutConfig> = {
     ]
   },
   dynamic_swarm: {
-    nodes: [],
-    edges: []
+    nodes: [
+      { id: "manager", x: 36, y: 100, label: "Swarm Manager" },
+      { id: "finalize", x: 488, y: 100, label: "Finalizer" }
+    ],
+    edges: [{ source: "manager", target: "finalize" }]
   }
 };
 
-// ---------------------------------------------------------
-// Custom Node Component
-// ---------------------------------------------------------
+const DEFAULT_DYNAMIC_LABELS: Record<string, string> = {
+  manager: "Swarm Manager",
+  finalize: "Finalizer"
+};
 
-function AgentNode({ data }: NodeProps) {
-  const { label, status, tokens, streamedText, onClick } = data as any;
+function AgentNode({ data }: NodeProps<Node<AgentNodeData>>) {
+  const { label, status, tokens, streamedText, onClick } = data;
   const isRunning = status === "running";
   const isComplete = status === "complete";
 
-  let borderColor = "var(--border-color)";
-  if (isRunning) borderColor = "#60a5fa";
-  if (isComplete) borderColor = "#34d399";
-  if (isRunning && label === "Swarm Manager") borderColor = "#eab308";
+  const borderColor = isRunning
+    ? "rgba(96, 165, 250, 0.92)"
+    : isComplete
+      ? "rgba(52, 211, 153, 0.85)"
+      : "rgba(148, 163, 184, 0.25)";
 
   return (
-    <div 
-      onClick={onClick}
+    <div
+      onClick={isComplete ? onClick : undefined}
       style={{
-        position: 'relative',
-        padding: '10px',
-        borderRadius: '8px',
-        background: 'var(--panel-bg)',
-        border: `2px solid ${borderColor}`,
-        minWidth: '130px',
-        textAlign: 'center',
-        cursor: isComplete ? 'pointer' : 'default',
-        boxShadow: isRunning ? '0 0 15px rgba(96, 165, 250, 0.4)' : 'none',
-        transition: 'all 0.3s ease',
+        position: "relative",
+        minWidth: "142px",
+        padding: "14px 14px 12px",
+        borderRadius: "18px",
+        border: `1px solid ${borderColor}`,
+        background: "linear-gradient(180deg, var(--graph-node-bg-strong), var(--graph-node-bg))",
+        boxShadow: isRunning ? "0 18px 36px rgba(37, 99, 235, 0.22)" : "none",
+        color: "var(--text-primary)",
+        cursor: isComplete ? "pointer" : "default",
+        transition: "transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease",
+        backdropFilter: "blur(16px)"
       }}
     >
       {isRunning && (
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+          transition={{ repeat: Infinity, duration: 5, ease: "linear" }}
           style={{
-            position: 'absolute',
-            top: -6, left: -6, right: -6, bottom: -6,
-            border: `2px dashed ${label === 'Swarm Manager' ? 'rgba(234, 179, 8, 0.5)' : 'rgba(96, 165, 250, 0.5)'}`,
-            borderRadius: '10px',
-            pointerEvents: 'none'
+            position: "absolute",
+            inset: "-5px",
+            border: "1px dashed rgba(96, 165, 250, 0.42)",
+            borderRadius: "22px",
+            pointerEvents: "none"
           }}
         />
       )}
 
       {isRunning && streamedText && (
         <motion.div
-          initial={{ opacity: 0, y: 10, x: '-50%' }}
-          animate={{ opacity: 1, y: 0, x: '-50%' }}
+          initial={{ opacity: 0, y: 10, x: "-50%" }}
+          animate={{ opacity: 1, y: 0, x: "-50%" }}
           style={{
-            position: 'absolute',
-            bottom: '100%',
-            left: '50%',
-            background: 'var(--panel-bg)',
-            border: `1px solid ${label === 'Swarm Manager' ? '#eab308' : '#60a5fa'}`,
-            borderRadius: '8px',
-            padding: '8px',
-            fontSize: '10px',
-            width: '150px',
-            marginBottom: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-            zIndex: 100,
-            color: 'var(--text-color)',
-            textAlign: 'left',
-            fontFamily: 'monospace',
-            whiteSpace: 'pre-wrap',
-            wordWrap: 'break-word',
-            lineHeight: 1.2
+            position: "absolute",
+            left: "50%",
+            bottom: "calc(100% + 14px)",
+            width: "180px",
+            padding: "10px 12px",
+            borderRadius: "14px",
+            border: "1px solid rgba(96, 165, 250, 0.45)",
+            background: "var(--graph-tooltip-bg)",
+            boxShadow: "0 16px 28px rgba(2, 6, 23, 0.42)",
+            color: "var(--text-secondary)",
+            fontSize: "11px",
+            lineHeight: 1.45,
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            zIndex: 10
           }}
         >
-          <div style={{ maxHeight: '60px', overflow: 'hidden' }}>
-            {streamedText.length > 120 ? '...' + streamedText.slice(-120) : streamedText}
-          </div>
-          <div style={{
-            position: 'absolute',
-            bottom: '-6px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            borderLeft: '6px solid transparent',
-            borderRight: '6px solid transparent',
-            borderTop: `6px solid ${label === 'Swarm Manager' ? '#eab308' : '#60a5fa'}`
-          }} />
+          {streamedText.length > 140 ? `…${streamedText.slice(-140)}` : streamedText}
         </motion.div>
       )}
 
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
-      
-      <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-color)' }}>
-        {label}
-      </div>
-      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-        {isRunning && "Running..."}
-        {isComplete && `${tokens || 0} tokens`}
-        {!isRunning && !isComplete && "Pending"}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        <span
+          style={{
+            fontSize: "10px",
+            textTransform: "uppercase",
+            letterSpacing: "0.16em",
+            color: "var(--text-secondary)"
+          }}
+        >
+          {status}
+        </span>
+        <strong style={{ fontSize: "14px", fontWeight: 700 }}>{label}</strong>
+        <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+          {isRunning && "Streaming node output"}
+          {isComplete && `${tokens.toLocaleString()} tokens`}
+          {!isRunning && !isComplete && "Queued in the graph"}
+        </span>
       </div>
 
       <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
@@ -180,147 +187,252 @@ const nodeTypes = {
   agentNode: AgentNode
 };
 
-// ---------------------------------------------------------
-// Main Graph Component
-// ---------------------------------------------------------
-
-export function AnimatedAgentGraph({ 
-  architecture, 
+export function AnimatedAgentGraph({
+  architecture,
   nodeEvents,
-  dynamicEdges = [],
-  interactive = false
-}: { 
-  architecture: ArchitectureName; 
+  dynamicEdges = []
+}: {
+  architecture: ArchitectureName;
   nodeEvents: Record<string, NodeTraceEvent & { streamedText?: string }>;
   dynamicEdges?: { source: string; target: string }[];
-  interactive?: boolean;
 }) {
-  const [selectedEvent, setSelectedEvent] = useState<NodeTraceEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<(NodeTraceEvent & { streamedText?: string }) | null>(
+    null
+  );
 
-  const { nodes: configNodes, edges: configEdges } = useMemo(() => {
+  const { nodes: layoutNodes, edges: layoutEdges } = useMemo(() => {
     if (architecture !== "dynamic_swarm") {
-      // Fallback to empty graph if architecture is unknown (e.g. from old cached state)
-      return LAYOUTS[architecture] || LAYOUTS["decentralized"] || { nodes: [], edges: [] };
+      return LAYOUTS[architecture] ?? LAYOUTS.decentralized;
     }
 
-    const dNodes: any[] = [];
-    let subagentCount = 0;
-    
-    Object.keys(nodeEvents).forEach((nodeId) => {
-      const event = nodeEvents[nodeId];
+    const eventEntries = Object.entries(nodeEvents);
+    if (eventEntries.length === 0) {
+      return LAYOUTS.dynamic_swarm;
+    }
+
+    const nodes = eventEntries.map(([nodeId, event], index) => {
       if (nodeId === "manager") {
-        dNodes.push({ id: nodeId, x: 20, y: 100, label: event.label });
-      } else if (nodeId === "finalize") {
-        dNodes.push({ id: nodeId, x: 500, y: 100, label: event.label });
-      } else {
-        dNodes.push({ id: nodeId, x: 260, y: 10 + subagentCount * 90, label: event.label });
-        subagentCount++;
+        return {
+          id: nodeId,
+          x: 36,
+          y: 100,
+          label: event.label || DEFAULT_DYNAMIC_LABELS[nodeId] || "Manager"
+        };
       }
+
+      if (nodeId === "finalize") {
+        return {
+          id: nodeId,
+          x: 488,
+          y: 100,
+          label: event.label || DEFAULT_DYNAMIC_LABELS[nodeId] || "Finalizer"
+        };
+      }
+
+      const verticalIndex = Math.max(0, index - 1);
+      return {
+        id: nodeId,
+        x: 258,
+        y: 24 + verticalIndex * 92,
+        label: event.label || `Agent ${verticalIndex + 1}`
+      };
     });
 
-    return { nodes: dNodes, edges: dynamicEdges };
-  }, [architecture, nodeEvents, dynamicEdges]);
+    return {
+      nodes,
+      edges: dynamicEdges.length > 0 ? dynamicEdges : LAYOUTS.dynamic_swarm.edges
+    };
+  }, [architecture, dynamicEdges, nodeEvents]);
 
-  const nodes = useMemo(() => {
-    return configNodes.map(n => {
-      const event = nodeEvents[n.id];
-      return {
-        id: n.id,
-        type: "agentNode",
-        position: { x: n.x, y: n.y },
-        data: {
-          label: event?.label || n.label,
-          status: event?.status || "pending",
-          tokens: event?.tokens || 0,
-          streamedText: event?.streamedText || "",
-          onClick: () => {
-            if (event?.status === "complete") {
-              setSelectedEvent(event);
+  const nodes = useMemo(
+    () =>
+      layoutNodes.map((node) => {
+        const event = nodeEvents[node.id];
+        return {
+          id: node.id,
+          type: "agentNode",
+          position: { x: node.x, y: node.y },
+          draggable: false,
+          selectable: false,
+          data: {
+            label: event?.label || node.label,
+            status: event?.status || "pending",
+            tokens: event?.tokens || 0,
+            streamedText: event?.streamedText,
+            onClick: () => {
+              if (event?.status === "complete") {
+                setSelectedEvent(event);
+              }
             }
           }
-        }
-      };
-    });
-  }, [configNodes, nodeEvents]);
+        };
+      }),
+    [layoutNodes, nodeEvents]
+  );
 
-  const edges = useMemo(() => {
-    return configEdges.map((e, i) => {
-      const targetEvent = nodeEvents[e.target];
-      const sourceEvent = nodeEvents[e.source];
-      // Animate if the target is currently running and the source is complete!
-      const isFlowing = targetEvent?.status === "running" && sourceEvent?.status === "complete";
-      
-      return {
-        id: `e-${e.source}-${e.target}`,
-        source: e.source,
-        target: e.target,
-        animated: isFlowing,
-        type: 'smoothstep',
-        style: {
-          stroke: isFlowing ? '#60a5fa' : sourceEvent?.status === "complete" ? '#34d399' : 'var(--border-color)',
-          strokeWidth: isFlowing ? 3 : 2,
-        },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: isFlowing ? '#60a5fa' : sourceEvent?.status === "complete" ? '#34d399' : 'var(--border-color)'
-        }
-      };
-    });
-  }, [configEdges, nodeEvents]);
+  const edges = useMemo(
+    () =>
+      layoutEdges.map((edge) => {
+        const sourceEvent = nodeEvents[edge.source];
+        const targetEvent = nodeEvents[edge.target];
+        const isFlowing =
+          sourceEvent?.status === "complete" && targetEvent?.status === "running";
+        const isSettled = sourceEvent?.status === "complete" && targetEvent?.status === "complete";
+
+        return {
+          id: `edge-${edge.source}-${edge.target}`,
+          source: edge.source,
+          target: edge.target,
+          type: "smoothstep",
+          animated: isFlowing,
+          style: {
+            stroke: isFlowing
+              ? "#60a5fa"
+              : isSettled
+                ? "#34d399"
+                : "rgba(148, 163, 184, 0.28)",
+            strokeWidth: isFlowing ? 3 : 2
+          },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: isFlowing
+              ? "#60a5fa"
+              : isSettled
+                ? "#34d399"
+                : "rgba(148, 163, 184, 0.48)"
+          }
+        };
+      }),
+    [layoutEdges, nodeEvents]
+  );
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '220px', borderRadius: '8px', overflow: 'hidden', background: 'rgba(0,0,0,0.2)' }}>
-      <ReactFlow 
-        nodes={nodes} 
-        edges={edges} 
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "272px",
+        overflow: "hidden",
+        borderRadius: "22px",
+        border: "1px solid rgba(148, 163, 184, 0.14)",
+        background: "linear-gradient(180deg, var(--graph-surface-top), var(--graph-surface-bottom))"
+      }}
+    >
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.3 }}
-        panOnDrag={true}
-        zoomOnScroll={interactive}
-        selectionOnDrag={interactive}
-        panOnScroll={false}
+        fitViewOptions={{ padding: 0.28 }}
+        zoomOnScroll
+        zoomOnPinch
+        panOnDrag
+        panOnScroll
+        selectionOnDrag={false}
+        preventScrolling={false}
+        minZoom={0.45}
+        maxZoom={1.75}
+        nodesConnectable={false}
+        elementsSelectable={false}
+        proOptions={{ hideAttribution: true }}
       >
-        <Background color="rgba(255,255,255,0.05)" gap={20} />
+        <Background color="var(--graph-grid-color)" gap={24} size={1} />
+        <Controls
+          showInteractive={false}
+          style={{
+            border: "1px solid var(--panel-border)",
+            borderRadius: "14px",
+            background: "var(--graph-controls-bg)",
+            boxShadow: "var(--shadow-md)"
+          }}
+        />
       </ReactFlow>
 
-      {/* Inspector Panel */}
       <AnimatePresence>
         {selectedEvent && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
+          <motion.aside
+            initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            exit={{ opacity: 0, x: 24 }}
             style={{
-              position: 'absolute',
-              top: 10, right: 10, bottom: 10,
-              width: '300px',
-              background: 'var(--bg-color)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '8px',
-              padding: '16px',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-              zIndex: 10
+              position: "absolute",
+              top: 14,
+              right: 14,
+              bottom: 14,
+              width: "296px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              padding: "16px",
+              borderRadius: "18px",
+              border: "1px solid rgba(96, 165, 250, 0.26)",
+              background: "var(--graph-overlay-bg)",
+              boxShadow: "0 20px 40px rgba(2, 6, 23, 0.34)",
+              zIndex: 20
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h3 style={{ margin: 0, fontSize: '14px', color: '#34d399' }}>{selectedEvent.label} Payload</h3>
-              <button 
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: "12px"
+              }}
+            >
+              <div>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "10px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.16em",
+                    color: "var(--text-secondary)",
+                    marginBottom: "6px"
+                  }}
+                >
+                  Node payload
+                </span>
+                <strong style={{ fontSize: "15px" }}>{selectedEvent.label}</strong>
+              </div>
+
+              <button
                 onClick={() => setSelectedEvent(null)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '18px' }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "var(--text-secondary)",
+                  cursor: "pointer",
+                  fontSize: "18px",
+                  lineHeight: 1
+                }}
               >
-                &times;
+                ×
               </button>
             </div>
-            <div style={{ flex: 1, overflowY: 'auto', fontSize: '12px', color: 'var(--text-color)', whiteSpace: 'pre-wrap', fontFamily: 'monospace', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '4px' }}>
-              {selectedEvent.output || "No output captured."}
+
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                borderRadius: "14px",
+                border: "1px solid rgba(148, 163, 184, 0.14)",
+                background: "var(--graph-node-bg)",
+                padding: "12px",
+                color: "var(--text-secondary)",
+                whiteSpace: "pre-wrap",
+                fontSize: "12px",
+                lineHeight: 1.55,
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+              }}
+            >
+              {selectedEvent.output || "No output captured for this node."}
             </div>
-            <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--text-muted)' }}>
-              Total Tokens: {selectedEvent.tokens}
+
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+              <span style={{ color: "var(--text-secondary)" }}>Tokens</span>
+              <strong>{selectedEvent.tokens?.toLocaleString() ?? "0"}</strong>
             </div>
-          </motion.div>
+          </motion.aside>
         )}
       </AnimatePresence>
     </div>

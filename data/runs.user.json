@@ -1,6 +1,166 @@
 {
   "runs": [
     {
+      "runId": "80957388-6924-433a-99b1-f7a5892206d6",
+      "tool": "langgraph-gemini",
+      "architecture": "decentralized",
+      "taskId": "analysis_perf_01",
+      "taskLabel": "Distributed System Latency Audit",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T18:15:47.519Z",
+      "durationMs": 149057,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 13306,
+        "output": 8412,
+        "reasoning": 626,
+        "total": 21718
+      },
+      "resources": {
+        "cpuAvgPct": 1.2,
+        "cpuPeakPct": 42.3,
+        "rssPeakMb": 78.1,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 1,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Peer C merged the independent proposals. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]### Conflict Name: Symptomatic vs. Structural Root Cause Analysis\n\nThe conflict between Peer A and Peer B lies in the **level of abstraction** used for diagnosis. \n* **Peer A** adopts a **Symptomat…"
+    },
+    {
+      "runId": "24088b2b-1ae2-46fd-a0a1-a3df66bea3b5",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "analysis_perf_01",
+      "taskLabel": "Distributed System Latency Audit",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T18:15:47.513Z",
+      "durationMs": 112185,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 7067,
+        "output": 4952,
+        "reasoning": 625,
+        "total": 12019
+      },
+      "resources": {
+        "cpuAvgPct": 1.3,
+        "cpuPeakPct": 42.3,
+        "rssPeakMb": 78,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis**\nThe 650ms p99 latency jump is likely a **compounding latency effect** where the new service mesh/tracing layer has increased the \"hold time\" of distributed locks or cache invalidation…"
+    },
+    {
+      "runId": "80861dd5-6b4f-40e4-8665-993666ab38fa",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "analysis_perf_01",
+      "taskLabel": "Distributed System Latency Audit",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T18:15:47.408Z",
+      "durationMs": 69914,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "pass",
+      "tokens": {
+        "input": 2190,
+        "output": 2486,
+        "reasoning": 486,
+        "total": 4676
+      },
+      "resources": {
+        "cpuAvgPct": 1.7,
+        "cpuPeakPct": 42.2,
+        "rssPeakMb": 78,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Distributed System Latency Audit.\\np99 latency jumped from \"}][{\"thought\":true,\"type\":\"text\",\"text\":\"200ms to 850ms after service mesh and global tracing deployment.\\nHigh contention in distributed ca…"
+    },
+    {
+      "runId": "bcf73909-07e7-4520-885a-bf2232e0234c",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "analysis_perf_01",
+      "taskLabel": "Distributed System Latency Audit",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T18:15:47.516Z",
+      "durationMs": 51660,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "fail",
+      "tokens": {
+        "input": 2436,
+        "output": 1842,
+        "reasoning": 418,
+        "total": 4278
+      },
+      "resources": {
+        "cpuAvgPct": 2,
+        "cpuPeakPct": 42.3,
+        "rssPeakMb": 78.1,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 0,
+        "testsFailed": 4,
+        "rubricScore": 0,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the hybrid run. -> Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: [API Error: Rate limit or connectivity issue. Reverting to fallback for this node.]"
+    },
+    {
       "runId": "40ab0693-24d3-498f-baa2-7176b014bd78",
       "tool": "langgraph-gemini",
       "architecture": "centralized",
