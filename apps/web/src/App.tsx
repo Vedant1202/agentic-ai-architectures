@@ -10,6 +10,7 @@ import {
   type LiveUpdate,
   type NodeTraceEvent,
 } from "@agent-visibility/shared";
+import { AnimatedAgentGraph } from "./AnimatedAgentGraph.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -406,7 +407,7 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
                     {run.status}
                   </span>
                 </div>
-                <VisualFlowchart architecture={run.architecture} nodeEvents={run.nodeEvents} />
+                <AnimatedAgentGraph architecture={run.architecture} nodeEvents={run.nodeEvents} />
             </div>
           );
         })}
@@ -415,76 +416,7 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
   );
 }
 
-function VisualFlowchart({ architecture, nodeEvents }: { architecture: ArchitectureName, nodeEvents: Record<string, NodeTraceEvent> }) {
-  
-  const renderNode = (nodeId: string) => {
-    const event = nodeEvents[nodeId];
-    const isActive = event?.status === "running";
-    const isComplete = event?.status === "complete";
-    return (
-      <div 
-        key={nodeId}
-        style={{
-          padding: '12px',
-          borderRadius: '8px',
-          border: `2px solid ${isActive ? '#60a5fa' : isComplete ? '#34d399' : 'var(--border-color)'}`,
-          background: isComplete ? 'rgba(52, 211, 153, 0.1)' : isActive ? 'rgba(96, 165, 250, 0.1)' : 'transparent',
-          minWidth: '120px',
-          textAlign: 'center',
-          position: 'relative',
-          transition: 'all 0.3s ease',
-          boxShadow: isActive ? '0 0 10px rgba(96, 165, 250, 0.3)' : 'none'
-        }}
-        title={event?.output || "Waiting..."}
-      >
-        <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-color)' }}>
-          {event?.label || nodeId.replace('_', ' ').toUpperCase()}
-        </div>
-        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-          {isActive && "Running..."}
-          {isComplete && `${event?.tokens || 0} tkns`}
-          {!isActive && !isComplete && "Pending"}
-        </div>
-      </div>
-    );
-  };
 
-  const Arrow = () => <div style={{ color: 'var(--border-color)', margin: '0 8px' }}>→</div>;
-
-  if (architecture === "decentralized_emulated") {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto', padding: '8px 0' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {renderNode("peer_a")}
-          {renderNode("peer_b")}
-        </div>
-        <Arrow />
-        {renderNode("peer_merge")}
-        <Arrow />
-        {renderNode("finalize")}
-      </div>
-    );
-  }
-
-  const layouts: Record<string, string[]> = {
-    single: ["finalize"],
-    centralized: ["plan", "research", "implement", "finalize"],
-    hybrid: ["plan", "research", "implement", "review", "finalize"],
-  };
-
-  const flow = layouts[architecture] || [];
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', overflowX: 'auto', padding: '8px 0' }}>
-      {flow.map((nodeId, index) => (
-        <div key={nodeId} style={{ display: 'flex', alignItems: 'center' }}>
-          {renderNode(nodeId)}
-          {index < flow.length - 1 && <Arrow />}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function StatCard({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
