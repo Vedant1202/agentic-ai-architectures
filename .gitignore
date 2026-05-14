@@ -6,7 +6,7 @@ coverage
 .env.local
 .env
 METRICS_EXPLAINER.md
+BENCHMARK_METRICS_GUIDE.md
 .gitignore
 available_models.txt
 data/runs.user.json
-

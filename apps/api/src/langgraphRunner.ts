@@ -48,6 +48,8 @@ const EvaluationSchema = z.object({
   testsPassed: z.number().int().min(0),
   testsFailed: z.number().int().min(0),
   regressionCount: z.number().int().min(0),
+  criteriaMet: z.number().int().min(0),
+  confidenceScore: z.number().min(0).max(1),
   rationale: z.string()
 });
 
@@ -718,7 +720,18 @@ class Runtime {
       return fallback();
     }
 
-    const candidate = JSON.parse(parsed) as unknown;
+    let candidate: unknown;
+    try {
+      candidate = JSON.parse(parsed) as unknown;
+    } catch (error) {
+      console.warn("Failed to parse model JSON response. Falling back.", {
+        role,
+        message: error instanceof Error ? error.message : "Unknown parse error",
+        responseText: truncate(response.text, 400)
+      });
+      return fallback();
+    }
+
     const validated = schema.safeParse(candidate);
     if (!validated.success) {
       return fallback();
@@ -776,17 +789,26 @@ async function evaluateRun(
   finalAnswer: string,
   architecture: ArchitectureName
 ) {
+  const criteria = task.evaluationCriteria?.length ? task.evaluationCriteria : task.evaluationFocus;
   const evaluationPrompt = [
     `Task: ${task.label}`,
     `Architecture: ${labelForArchitecture(architecture)}`,
+    `Task shape: ${task.taskShape ?? "unknown"}`,
+    task.expectedBestArchitecture
+      ? `Expected best-fit architecture for this task shape: ${labelForArchitecture(task.expectedBestArchitecture)}`
+      : "",
     `Evaluation focus: ${task.evaluationFocus.join(", ")}`,
-    "Score the answer on a 0 to 1 rubric and estimate pass/fail style outcome and test counts.",
-    "Return only JSON with rubricScore, outcome, testsPassed, testsFailed, regressionCount, rationale.",
+    `Checklist criteria (${criteria.length} total):`,
+    ...criteria.map((criterion, index) => `${index + 1}. ${criterion}`),
+    "Score the answer on a 0 to 1 rubric, estimate pass/fail style outcome and test counts, count how many checklist criteria were met, and estimate evaluator confidence.",
+    "Return only JSON with rubricScore, outcome, testsPassed, testsFailed, regressionCount, criteriaMet, confidenceScore, rationale.",
     `Answer to evaluate:\n${finalAnswer}`
-  ].join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   return runtime.generateJson("grader", evaluationPrompt, EvaluationSchema, () =>
-    buildSimulatedEvaluation(architecture)
+    buildSimulatedEvaluation(architecture, criteria.length)
   );
 }
 
@@ -844,7 +866,16 @@ function buildRun(input: {
       testsPassed: input.evaluation.testsPassed,
       testsFailed: input.evaluation.testsFailed,
       rubricScore: input.evaluation.rubricScore,
-      regressionCount: input.evaluation.regressionCount
+      regressionCount: input.evaluation.regressionCount,
+      criteriaMet: Math.min(input.evaluation.criteriaMet, input.task.evaluationCriteria?.length ?? input.task.evaluationFocus.length),
+      criteriaTotal: input.task.evaluationCriteria?.length ?? input.task.evaluationFocus.length,
+      confidenceScore: input.evaluation.confidenceScore,
+      compositeScore: buildCompositeScore(
+        input.evaluation,
+        input.task.evaluationCriteria?.length ?? input.task.evaluationFocus.length
+      ),
+      verificationMode: input.runtime.getStatus().mode === "simulated" ? "simulated" : "judge_only",
+      rationale: input.evaluation.rationale
     },
     coordination: {
       handoffs: input.handoffs,
@@ -946,7 +977,8 @@ function buildSimulatedResponse(role: string, prompt: string) {
   return `${roleTemplates[role] ?? "Produce a concrete benchmark response."}\n\nContext excerpt: ${excerpt}`;
 }
 
-function buildSimulatedEvaluation(architecture: ArchitectureName): Evaluation {
+function buildSimulatedEvaluation(architecture: ArchitectureName, criteriaTotal: number): Evaluation {
+  const clampCriteria = (met: number) => Math.min(met, criteriaTotal || met);
   const mapping: Record<ArchitectureName, Evaluation> = {
     single: {
       rubricScore: 0.74,
@@ -954,6 +986,8 @@ function buildSimulatedEvaluation(architecture: ArchitectureName): Evaluation {
       testsPassed: 6,
       testsFailed: 1,
       regressionCount: 1,
+      criteriaMet: clampCriteria(3),
+      confidenceScore: 0.68,
       rationale: "Single-agent run covered the basics but missed one edge case."
     },
     centralized: {
@@ -962,6 +996,8 @@ function buildSimulatedEvaluation(architecture: ArchitectureName): Evaluation {
       testsPassed: 7,
       testsFailed: 0,
       regressionCount: 0,
+      criteriaMet: clampCriteria(4),
+      confidenceScore: 0.83,
       rationale: "Coordinator plus research improved coverage and execution detail."
     },
     hybrid: {
@@ -970,6 +1006,8 @@ function buildSimulatedEvaluation(architecture: ArchitectureName): Evaluation {
       testsPassed: 7,
       testsFailed: 0,
       regressionCount: 0,
+      criteriaMet: clampCriteria(5),
+      confidenceScore: 0.9,
       rationale: "Verifier feedback tightened the final plan and reduced blind spots."
     },
     decentralized: {
@@ -978,6 +1016,8 @@ function buildSimulatedEvaluation(architecture: ArchitectureName): Evaluation {
       testsPassed: 6,
       testsFailed: 1,
       regressionCount: 1,
+      criteriaMet: clampCriteria(3),
+      confidenceScore: 0.7,
       rationale: "Independent peers increased idea diversity but also merge overhead."
     },
     dynamic_swarm: {
@@ -986,11 +1026,29 @@ function buildSimulatedEvaluation(architecture: ArchitectureName): Evaluation {
       testsPassed: 8,
       testsFailed: 0,
       regressionCount: 0,
+      criteriaMet: clampCriteria(5),
+      confidenceScore: 0.92,
       rationale: "Dynamic sub-agents adapted perfectly to the multi-faceted problem."
     }
   };
 
   return mapping[architecture];
+}
+
+function buildCompositeScore(evaluation: Evaluation, criteriaTotal: number) {
+  const checklistCoverage = criteriaTotal > 0 ? evaluation.criteriaMet / criteriaTotal : evaluation.rubricScore;
+  const testReliability = evaluation.testsPassed + evaluation.testsFailed > 0
+    ? evaluation.testsPassed / (evaluation.testsPassed + evaluation.testsFailed)
+    : 1;
+  const regressionPenalty = Math.max(0, 1 - evaluation.regressionCount * 0.12);
+
+  const weighted =
+    evaluation.rubricScore * 0.45
+    + checklistCoverage * 0.25
+    + evaluation.confidenceScore * 0.15
+    + testReliability * 0.15;
+
+  return round(Math.max(0, Math.min(1, weighted * regressionPenalty)));
 }
 
 function taskBlock(label: string, prompt: string) {
@@ -1007,13 +1065,47 @@ function optionalBlock(label: string, content: string) {
 
 function extractJsonObject(text: string) {
   const firstBrace = text.indexOf("{");
-  const lastBrace = text.lastIndexOf("}");
-
-  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+  if (firstBrace === -1) {
     return null;
   }
 
-  return text.slice(firstBrace, lastBrace + 1);
+  let depth = 0;
+  let inString = false;
+  let isEscaped = false;
+
+  for (let index = firstBrace; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false;
+      } else if (char === "\\") {
+        isEscaped = true;
+      } else if (char === "\"") {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return text.slice(firstBrace, index + 1);
+      }
+    }
+  }
+
+  return null;
 }
 
 function labelForArchitecture(architecture: ArchitectureName) {

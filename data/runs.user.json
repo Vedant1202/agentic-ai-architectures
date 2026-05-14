@@ -1,6 +1,304 @@
 {
   "runs": [
     {
+      "runId": "fe31e2cc-620c-4a8f-ac1c-60c90d579681",
+      "tool": "langgraph-gemini",
+      "architecture": "dynamic_swarm",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T20:44:30.431Z",
+      "durationMs": 153531,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 5,
+      "outcome": "fail",
+      "tokens": {
+        "input": 13069,
+        "output": 15961,
+        "reasoning": 1642,
+        "total": 29030
+      },
+      "resources": {
+        "cpuAvgPct": 1.2,
+        "cpuPeakPct": 44.9,
+        "rssPeakMb": 78.8,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 0,
+        "testsFailed": 5,
+        "rubricScore": 0,
+        "regressionCount": 0,
+        "criteriaMet": 0,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 0.2,
+        "verificationMode": "judge_only",
+        "rationale": "The model failed to perform the task because it lacked the necessary input data (the migration manifest and execution logs). While it correctly identified the missing information and outlined a robust methodology for how it would address the task, it did not actually reconstruct a state, identify a failure point, or provide a recovery plan as required by the checklist criteria."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**[SECURITY AUDITOR INITIALIZING]**\n\n**STATUS:** STANDBY\n**TASK:** Sequential Release Recovery Plan\n**REQUIREMENT:** Migration Manifest (Intended 14-step sequence) and Execution Logs (Actual observ…"
+    },
+    {
+      "runId": "d056e283-df21-4d10-a0b4-1335fbfab75b",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T20:44:30.429Z",
+      "durationMs": 100335,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "fail",
+      "tokens": {
+        "input": 9502,
+        "output": 6455,
+        "reasoning": 1016,
+        "total": 15957
+      },
+      "resources": {
+        "cpuAvgPct": 1.5,
+        "cpuPeakPct": 45.1,
+        "rssPeakMb": 78.8,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 0,
+        "testsFailed": 1,
+        "rubricScore": 0,
+        "regressionCount": 0,
+        "criteriaMet": 0,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 0.2,
+        "verificationMode": "judge_only",
+        "rationale": "The provided answer is a meta-proposal for designing a benchmark/framework to test sequential release recovery, rather than an actual execution of a Sequential Release Recovery Plan. It fails to address the specific task requirements: it does not reconstruct a partial release state, identify an invalid transition in a sequence, or provide a recovery plan with checkpoints and validation checks for a specific scenario."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis**\nThe current benchmark design lacks a formal mechanism to prevent \"pattern matching\" and instead requires a \"state-machine reconstruction\" capability. Without a structured dependency g…"
+    },
+    {
+      "runId": "65336be6-812e-4397-89b9-d42d3f7bab70",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T20:44:30.172Z",
+      "durationMs": 62430,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "pass",
+      "tokens": {
+        "input": 2569,
+        "output": 3271,
+        "reasoning": 1080,
+        "total": 5840
+      },
+      "resources": {
+        "cpuAvgPct": 1.8,
+        "cpuPeakPct": 45,
+        "rssPeakMb": 78.8,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 5,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "The response satisfies all checklist criteria: it reconstructs the state (Current State), identifies the invalid transition (Step 6 to 7), provides an ordered recovery plan (R1-R4), includes rollback instructions for each step, and defines validation checkpoints for each step."
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Sequential Release Recovery Plan.\\nA 14-step migration failed\"}][{\"thought\":true,\"type\":\"text\",\"text\":\" midway. Dependencies are strict. Partial changes are live.\\n\\n        1.  Reconstruct current st…"
+    },
+    {
+      "runId": "2a207354-186b-4f60-9ac2-169f8140a36d",
+      "tool": "langgraph-gemini",
+      "architecture": "dynamic_swarm",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T19:24:09.042Z",
+      "durationMs": 112970,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 5,
+      "outcome": "pass",
+      "tokens": {
+        "input": 8079,
+        "output": 10044,
+        "reasoning": 637,
+        "total": 18123
+      },
+      "resources": {
+        "cpuAvgPct": 1.3,
+        "cpuPeakPct": 27.1,
+        "rssPeakMb": 83.7,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis:** The problem is a multi-dimensional decision-making task requiring the coordination of disparate data types (qualitative security audits vs. quantitative pricing data). A failure to c…"
+    },
+    {
+      "runId": "0cbfec17-0fbf-4d41-b0b0-a295a0054eba",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T19:24:09.041Z",
+      "durationMs": 90895,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 7963,
+        "output": 6397,
+        "reasoning": 921,
+        "total": 14360
+      },
+      "resources": {
+        "cpuAvgPct": 1.4,
+        "cpuPeakPct": 26.8,
+        "rssPeakMb": 83.7,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis**\nThe benchmark task requires a transition from a high-level orchestration plan to a functional, multi-agent execution system. The primary technical challenge is not just parallel execu…"
+    },
+    {
+      "runId": "58fa91cc-7c4d-424e-98f7-b863a299ca92",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T19:24:09.025Z",
+      "durationMs": 49425,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "pass",
+      "tokens": {
+        "input": 2069,
+        "output": 2781,
+        "reasoning": 764,
+        "total": 4850
+      },
+      "resources": {
+        "cpuAvgPct": 1.8,
+        "cpuPeakPct": 26.7,
+        "rssPeakMb": 83.7,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Parallel Vendor Risk Review (Enterprise Contract Renewal).\\nSecurity Posture,\"}][{\"thought\":true,\"type\":\"text\",\"text\":\" Pricing Trends, Incident History, Integration Cost.\\n\\n        1.  Break into pa…"
+    },
+    {
+      "runId": "344496d9-dd33-46c2-9e94-d9d8880c5fa7",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T19:17:55.521Z",
+      "durationMs": 96341,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 8381,
+        "output": 6675,
+        "reasoning": 583,
+        "total": 15056
+      },
+      "resources": {
+        "cpuAvgPct": 1.8,
+        "cpuPeakPct": 54.1,
+        "rssPeakMb": 85,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 3,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]### Final Synthesis: Parallel Vendor Risk Review\n\n**Diagnosis**\nThe proposed orchestration plan is logically sound for a decomposable task but suffers from three critical architectural vulnerabilit…"
+    },
+    {
       "runId": "56695343-3fe3-4bd5-86e1-010bf026c30d",
       "tool": "langgraph-gemini",
       "architecture": "decentralized",

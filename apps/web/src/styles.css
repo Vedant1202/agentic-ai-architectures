@@ -593,6 +593,12 @@ input:focus {
   background: var(--surface-muted);
 }
 
+.task-preview__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .task-category {
   padding: 8px 12px;
   border-radius: 999px;
@@ -606,6 +612,10 @@ input:focus {
   gap: 10px;
 }
 
+.focus-pills-criteria {
+  margin-top: 12px;
+}
+
 .focus-pill {
   padding: 10px 12px;
   border-radius: 999px;
@@ -613,6 +623,22 @@ input:focus {
   border: 1px solid rgba(96, 165, 250, 0.18);
   color: var(--text-soft);
   font-size: 0.9rem;
+}
+
+.focus-pill-criterion {
+  border-radius: 14px;
+  line-height: 1.45;
+}
+
+.task-criteria {
+  border-top: 1px solid var(--panel-border);
+  padding-top: 12px;
+}
+
+.task-criteria summary {
+  cursor: pointer;
+  color: var(--text-soft);
+  font-weight: 600;
 }
 
 .selection-header {
@@ -711,8 +737,8 @@ input:focus {
 .run-card {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 22px;
+  gap: 14px;
+  padding: 18px;
   border-radius: 28px;
   border: 1px solid color-mix(in srgb, var(--card-accent) 20%, var(--panel-border));
   background:
@@ -762,30 +788,227 @@ input:focus {
 
 .run-card__metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .mini-metric {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px;
-  border-radius: 18px;
+  gap: 4px;
+  padding: 10px 11px;
+  border-radius: 14px;
   border: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.03);
   overflow: hidden;
-  text-align: center;
+  text-align: left;
+  min-width: 0;
+}
+
+.mini-metric > span:first-child {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mini-metric strong {
+  font-size: 1.05rem;
+  line-height: 1.15;
+  word-break: break-word;
+}
+
+.mini-metric__sublabel {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Live token strip */
+.run-card__live-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--panel-border);
+  background: rgba(96, 165, 250, 0.05);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.live-token-counter strong {
+  color: var(--accent-blue);
+  font-size: 1rem;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.live-duration {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+
+/* Evaluation section */
+.run-card__eval-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eval-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.eval-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  color: var(--accent-gold);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Formula breakdown */
+.formula-breakdown {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--panel-border);
+  background: var(--surface-muted);
+}
+
+.formula-breakdown__title {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.formula-breakdown__formula {
+  margin-bottom: 12px;
+}
+
+.formula-breakdown__formula code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  color: var(--accent-blue);
+  background: rgba(96, 165, 250, 0.08);
+  padding: 4px 8px;
+  border-radius: 8px;
   word-break: break-all;
-  font-size: 1.1rem;
+  display: block;
+  line-height: 1.5;
+}
+
+.formula-breakdown__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formula-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.formula-row:last-child {
+  border-bottom: none;
+}
+
+.formula-row__label {
+  color: var(--text-secondary);
+}
+
+.formula-row__weight {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  min-width: 40px;
+  text-align: right;
+}
+
+.formula-row__value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: right;
+}
+
+.formula-row--result {
+  padding-top: 10px;
+  margin-top: 2px;
+  border-top: 2px solid var(--panel-border);
+  border-bottom: none;
+}
+
+.formula-row--result .formula-row__label {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.formula-row--result .formula-row__value {
+  color: var(--accent-blue);
+  font-size: 1rem;
 }
 
 .graph-shell {
   border-radius: 24px;
   overflow: hidden;
+}
+
+.run-card__snapshot {
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  overflow: hidden;
+}
+
+.run-card__details {
+  border-top: 1px solid var(--panel-border);
+  padding-top: 12px;
+}
+
+.run-card__details summary {
+  cursor: pointer;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.run-card__details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 10px;
+  margin: 12px 0 14px;
 }
 
 .react-flow__controls-button {
@@ -836,6 +1059,18 @@ input:focus {
 
 .trace-item-error strong {
   color: var(--error-color);
+}
+
+.trace-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-color: rgba(96, 165, 250, 0.22);
+  background: rgba(96, 165, 250, 0.08);
+}
+
+.trace-item-info strong {
+  color: var(--accent-blue);
 }
 
 .run-card__footer {

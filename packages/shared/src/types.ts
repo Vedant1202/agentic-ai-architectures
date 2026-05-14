@@ -35,6 +35,12 @@ export interface QualityMetrics {
   testsFailed: number;
   rubricScore: number;
   regressionCount: number;
+  criteriaMet?: number;
+  criteriaTotal?: number;
+  confidenceScore?: number;
+  compositeScore?: number;
+  verificationMode?: "simulated" | "judge_only" | "hybrid";
+  rationale?: string;
 }
 
 export interface CoordinationMetrics {
@@ -85,6 +91,9 @@ export interface BenchmarkTaskDefinition {
   category: "bugfix" | "refactor" | "analysis";
   prompt: string;
   evaluationFocus: string[];
+  evaluationCriteria?: string[];
+  taskShape?: "sequential" | "parallel" | "verification" | "consensus" | "open_ended";
+  expectedBestArchitecture?: ArchitectureName;
 }
 
 export interface RunnerStatus {

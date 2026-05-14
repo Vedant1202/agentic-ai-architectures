@@ -50,6 +50,9 @@ interface ArchitectureAggregate {
   color: string;
   runCount: number;
   avgScore: number;
+  avgJudgeScore: number;
+  avgCriteriaCoverage: number;
+  avgConfidence: number;
   avgDurationMs: number;
   avgTokens: number;
   passRate: number;
@@ -61,6 +64,8 @@ interface ArchitectureAggregate {
 interface HistoricalOverview {
   totalRuns: number;
   averageScore: number;
+  averageJudgeScore: number;
+  averageCriteriaCoverage: number;
   passRate: number;
   totalTokens: number;
   bestArchitecture: ArchitectureAggregate | null;
@@ -75,6 +80,9 @@ interface LiveComparisonDatum {
   cpuPeakPct: number;
   rssPeakMb: number;
   score: number;
+  judgeScore: number;
+  criteriaCoverage: number;
+  confidenceScore: number;
   tokens: number;
   durationMs: number;
   handoffs: number;
@@ -82,6 +90,8 @@ interface LiveComparisonDatum {
   testsPassed: number;
   testsFailed: number;
   toolCalls: number;
+  verificationMode: string;
+  rationale?: string;
   outcome: ExperimentRun["outcome"] | "pending";
 }
 
@@ -472,9 +482,9 @@ export default function App() {
               detail="Runs persisted in the ledger"
             />
             <StatCard
-              label="Avg. Quality"
+              label="Avg. Index"
               value={formatPercent(historicalOverview.averageScore)}
-              detail="Mean rubric score across all runs"
+              detail={`Judge ${formatPercent(historicalOverview.averageJudgeScore)} • Criteria ${formatPercent(historicalOverview.averageCriteriaCoverage)}`}
             />
             <StatCard
               label="Pass Rate"
@@ -622,11 +632,11 @@ export default function App() {
               tone="blue"
             />
             <OverviewCard
-              label="Best architecture"
+              label="Best index"
               value={historicalOverview.bestArchitecture?.label ?? "No data"}
               detail={
                 historicalOverview.bestArchitecture
-                  ? `${formatPercent(historicalOverview.bestArchitecture.avgScore)} average quality`
+                  ? `${formatPercent(historicalOverview.bestArchitecture.avgScore)} composite • ${formatPercent(historicalOverview.bestArchitecture.avgCriteriaCoverage)} criteria`
                   : "Waiting for benchmark history"
               }
               tone="teal"
@@ -662,8 +672,8 @@ export default function App() {
 
             <div className="insights-layout">
               <MetricBarChart
-                title="Mean Quality Score"
-                subtitle="Mean rubric score by architecture"
+                title="Mean Composite Index"
+                subtitle="Combined score from judge, criteria coverage, confidence, and test reliability"
                 data={historicalAverages.map((item) => ({
                   label: item.label,
                   color: item.color,
@@ -707,6 +717,8 @@ export default function App() {
                     <p>{getArchitectureDefinition(item.architecture)?.tradeoff}</p>
                     <div className="architecture-summary__meta">
                       <span>{item.runCount} runs</span>
+                      <span>{formatPercent(item.avgCriteriaCoverage)} criteria</span>
+                      <span>{formatPercent(item.avgConfidence)} confidence</span>
                       <span>{formatDuration(item.avgDurationMs)} avg</span>
                       <span>{formatCompact(item.avgTokens)} tokens</span>
                     </div>
@@ -759,8 +771,12 @@ export default function App() {
                       </td>
                       <td>
                         <div className="quality-meter">
-                          <strong>{formatPercent(run.quality.rubricScore * 100)}</strong>
-                          <span>{run.quality.testsPassed} passed / {run.quality.testsFailed} failed</span>
+                          <strong>{formatPercent(getCompositeScore(run) * 100)}</strong>
+                          <span>
+                            Judge {formatPercent((run.quality.rubricScore ?? 0) * 100)}
+                            {" • "}
+                            Criteria {formatPercent(getCriteriaCoverage(run) * 100)}
+                          </span>
                         </div>
                       </td>
                       <td className="mono-cell">{formatCompact(run.tokens.total)}</td>
@@ -797,7 +813,7 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
     <div className="live-dashboard">
       <section className="summary-strip summary-strip-live">
         <OverviewCard
-          label="Highest quality"
+          label="Highest index"
           value={leadingScore ? `${leadingScore.label}` : "Pending"}
           detail={leadingScore ? formatPercent(leadingScore.score) : "Waiting for completed runs"}
           tone="blue"
@@ -819,9 +835,15 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
           tone="gold"
         />
         <OverviewCard
-          label="Active architectures"
-          value={`${activeCount}/${comparisonData.length}`}
-          detail="Currently streaming or processing"
+          label="Judge average"
+          value={
+            comparisonData.length > 0
+              ? formatPercent(average(comparisonData.map((run) => run.judgeScore)))
+              : "Pending"
+          }
+          detail={
+            `${activeCount}/${comparisonData.length} architectures still active`
+          }
           tone="slate"
         />
       </section>
@@ -864,8 +886,8 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
         />
 
         <MetricBarChart
-          title="Final Quality Score"
-          subtitle="Final rubric score once each architecture completes"
+          title="Composite Quality Index"
+          subtitle="Primary comparison score for live runs"
           data={comparisonData.map((item) => ({
             label: item.label,
             color: item.color,
@@ -903,6 +925,12 @@ function ArchitectureRunCard({
 }) {
   const definition = getArchitectureDefinition(summary.architecture);
   const recentTrace = run.trace.slice(-4).reverse();
+  const isComplete = summary.status === "complete";
+  const isRunning = summary.status === "running";
+
+  // Post-run metrics: only available after evaluate() fires
+  const evalPending = !isComplete;
+  const dash = "—";
 
   return (
     <article
@@ -920,13 +948,48 @@ function ArchitectureRunCard({
         </span>
       </div>
 
-      <div className="run-card__metrics">
-        <MiniMetric label="Score" value={summary.score > 0 ? formatPercent(summary.score) : "Pending"} />
-        <MiniMetric label="Duration" value={summary.durationMs > 0 ? formatDuration(summary.durationMs) : "Streaming"} />
-        <MiniMetric label="Tokens" value={summary.tokens > 0 ? formatCompact(summary.tokens) : "Pending"} />
-        <MiniMetric label="Handoffs" value={summary.handoffs.toString()} />
-        <MiniMetric label="I/O ratio" value={`${summary.outputRatio.toFixed(2)}x`} />
-        <MiniMetric label="Tests" value={`${summary.testsPassed}/${summary.testsPassed + summary.testsFailed}`} />
+      {/* Live token count — updates as nodes complete */}
+      <div className="run-card__live-strip">
+        <span className="live-token-counter">
+          {summary.tokens > 0 ? (
+            <><strong>{formatCompact(summary.tokens)}</strong> tokens {isRunning ? "(live)" : ""}</>
+          ) : (
+            "Waiting for first node..."
+          )}
+        </span>
+        {summary.durationMs > 0 && (
+          <span className="live-duration">{formatDuration(summary.durationMs)}</span>
+        )}
+      </div>
+
+      {/* Quality metrics — populated only after run completes */}
+      <div className="run-card__eval-section">
+        <div className="eval-section-header">
+          <span>Evaluation scores</span>
+          {evalPending && <span className="eval-pending-badge">Post-run</span>}
+        </div>
+        <div className="run-card__metrics">
+          <MiniMetric
+            label="Index"
+            value={isComplete ? formatPercent(summary.score) : dash}
+            sublabel={isComplete ? `= 45%·J + 25%·C + 15%·Conf + 15%·T` : "After evaluation"}
+          />
+          <MiniMetric
+            label="Judge"
+            value={isComplete ? formatPercent(summary.judgeScore) : dash}
+            sublabel={isComplete ? "Holistic rubric" : "After evaluation"}
+          />
+          <MiniMetric
+            label="Criteria"
+            value={isComplete ? formatPercent(summary.criteriaCoverage) : dash}
+            sublabel={isComplete ? "Checklist coverage" : "After evaluation"}
+          />
+          <MiniMetric
+            label="Confidence"
+            value={isComplete ? formatPercent(summary.confidenceScore) : dash}
+            sublabel={isComplete ? "Evaluator certainty" : "After evaluation"}
+          />
+        </div>
       </div>
 
       <div className="graph-shell">
@@ -937,36 +1000,101 @@ function ArchitectureRunCard({
         />
       </div>
 
-      <div className="trace-feed">
-        <div className="trace-feed__header">
-          <span>Recent trace</span>
-          <strong>{summary.outcome === "pending" ? "In progress" : summary.outcome}</strong>
-        </div>
+      <div className="run-card__snapshot">
+        <span>{run.trace.at(-1) ?? "Waiting for execution trace..."}</span>
+      </div>
 
-        {run.errorDetails && (
-          <div className="trace-item trace-item-error">
-            <strong>{formatLiveErrorTitle(run.errorDetails)}</strong>
-            <span>{run.errorDetails.message}</span>
-            {run.errorDetails.nodeLabel && <span>Active node: {run.errorDetails.nodeLabel}</span>}
+      <details className="run-card__details">
+        <summary>Expand details</summary>
+
+        {/* Formula breakdown */}
+        {isComplete && (
+          <div className="formula-breakdown">
+            <div className="formula-breakdown__title">Composite index formula</div>
+            <div className="formula-breakdown__formula">
+              <code>clamp(0.45·J + 0.25·C + 0.15·Conf + 0.15·T) × penalty</code>
+            </div>
+            <div className="formula-breakdown__rows">
+              <div className="formula-row">
+                <span className="formula-row__label">J – Judge score</span>
+                <span className="formula-row__weight">×0.45</span>
+                <span className="formula-row__value">{formatPercent(summary.judgeScore)}</span>
+              </div>
+              <div className="formula-row">
+                <span className="formula-row__label">C – Criteria coverage</span>
+                <span className="formula-row__weight">×0.25</span>
+                <span className="formula-row__value">{formatPercent(summary.criteriaCoverage)}</span>
+              </div>
+              <div className="formula-row">
+                <span className="formula-row__label">Conf – Confidence</span>
+                <span className="formula-row__weight">×0.15</span>
+                <span className="formula-row__value">{formatPercent(summary.confidenceScore)}</span>
+              </div>
+              <div className="formula-row">
+                <span className="formula-row__label">T – Test reliability</span>
+                <span className="formula-row__weight">×0.15</span>
+                <span className="formula-row__value">
+                  {summary.testsPassed + summary.testsFailed > 0
+                    ? formatPercent((summary.testsPassed / (summary.testsPassed + summary.testsFailed)) * 100)
+                    : "100% (no tests)"}
+                </span>
+              </div>
+              <div className="formula-row formula-row--result">
+                <span className="formula-row__label">Composite index</span>
+                <span className="formula-row__weight"></span>
+                <span className="formula-row__value">{formatPercent(summary.score)}</span>
+              </div>
+            </div>
           </div>
         )}
 
-        {recentTrace.length > 0 ? (
-          recentTrace.map((line, index) => (
-            <div key={`${summary.architecture}-${index}`} className="trace-item">
-              {line}
-            </div>
-          ))
-        ) : (
-          <div className="trace-item trace-item-muted">Waiting for execution trace...</div>
-        )}
-      </div>
+        <div className="run-card__details-grid">
+          <MiniMetric label="Tests" value={`${summary.testsPassed}/${summary.testsPassed + summary.testsFailed}`} />
+          <MiniMetric label="Handoffs" value={summary.handoffs.toString()} />
+          <MiniMetric label="I/O ratio" value={`${summary.outputRatio.toFixed(2)}x`} />
+          <MiniMetric label="Eval mode" value={formatVerificationMode(summary.verificationMode)} />
+          <MiniMetric label="Peak CPU" value={`${summary.cpuPeakPct.toFixed(1)}%`} />
+          <MiniMetric label="Peak memory" value={`${summary.rssPeakMb.toFixed(0)} MB`} />
+        </div>
 
-      <div className="run-card__footer">
-        <span>{summary.toolCalls} model calls</span>
-        <span>{summary.cpuPeakPct.toFixed(1)}% peak CPU</span>
-        <span>{summary.rssPeakMb.toFixed(0)} MB peak memory</span>
-      </div>
+        {summary.rationale && (
+          <div className="trace-item trace-item-info">
+            <strong>Evaluator rationale</strong>
+            <span>{summary.rationale}</span>
+          </div>
+        )}
+
+        <div className="trace-feed">
+          <div className="trace-feed__header">
+            <span>Recent trace</span>
+            <strong>{summary.outcome === "pending" ? "In progress" : summary.outcome}</strong>
+          </div>
+
+          {run.errorDetails && (
+            <div className="trace-item trace-item-error">
+              <strong>{formatLiveErrorTitle(run.errorDetails)}</strong>
+              <span>{run.errorDetails.message}</span>
+              {run.errorDetails.nodeLabel && <span>Active node: {run.errorDetails.nodeLabel}</span>}
+            </div>
+          )}
+
+          {recentTrace.length > 0 ? (
+            recentTrace.map((line, index) => (
+              <div key={`${summary.architecture}-${index}`} className="trace-item">
+                {line}
+              </div>
+            ))
+          ) : (
+            <div className="trace-item trace-item-muted">Waiting for execution trace...</div>
+          )}
+        </div>
+
+        <div className="run-card__footer">
+          <span>{summary.toolCalls} model calls</span>
+          <span>{summary.cpuPeakPct.toFixed(1)}% peak CPU</span>
+          <span>{summary.rssPeakMb.toFixed(0)} MB peak memory</span>
+        </div>
+      </details>
     </article>
   );
 }
@@ -996,13 +1124,31 @@ function TaskPreview({
       <p>{taskDescription}</p>
 
       {task && (
-        <div className="focus-pills">
-          {task.evaluationFocus.map((focus) => (
-            <span key={focus} className="focus-pill">
-              {focus}
-            </span>
-          ))}
-        </div>
+        <>
+          <div className="task-preview__meta">
+            {task.taskShape && <span className="focus-pill">Shape: {formatTaskShape(task.taskShape)}</span>}
+            {task.expectedBestArchitecture && (
+              <span className="focus-pill">Best fit: {getArchitectureDefinition(task.expectedBestArchitecture)?.label ?? task.expectedBestArchitecture}</span>
+            )}
+          </div>
+          <div className="focus-pills">
+            {task.evaluationFocus.map((focus) => (
+              <span key={focus} className="focus-pill">
+                {focus}
+              </span>
+            ))}
+          </div>
+          <details className="task-criteria">
+            <summary>Evaluation criteria</summary>
+            <div className="focus-pills focus-pills-criteria">
+              {(task.evaluationCriteria ?? task.evaluationFocus).map((criterion) => (
+                <span key={criterion} className="focus-pill focus-pill-criterion">
+                  {criterion}
+                </span>
+              ))}
+            </div>
+          </details>
+        </>
       )}
     </article>
   );
@@ -1130,11 +1276,12 @@ function OverviewCard({
   );
 }
 
-function MiniMetric({ label, value }: { label: string; value: string }) {
+function MiniMetric({ label, value, sublabel }: { label: string; value: string; sublabel?: string }) {
   return (
     <div className="mini-metric">
       <span>{label}</span>
       <strong>{value}</strong>
+      {sublabel && <span className="mini-metric__sublabel">{sublabel}</span>}
     </div>
   );
 }
@@ -1156,7 +1303,10 @@ function buildArchitectureAverages(runs: ExperimentRun[]) {
         label: definition?.label ?? architecture,
         color: definition?.color ?? "#64748b",
         runCount: architectureRuns.length,
-        avgScore: average(architectureRuns.map((run) => run.quality.rubricScore * 100)),
+        avgScore: average(architectureRuns.map((run) => getCompositeScore(run) * 100)),
+        avgJudgeScore: average(architectureRuns.map((run) => (run.quality.rubricScore ?? 0) * 100)),
+        avgCriteriaCoverage: average(architectureRuns.map((run) => getCriteriaCoverage(run) * 100)),
+        avgConfidence: average(architectureRuns.map((run) => (run.quality.confidenceScore ?? 0) * 100)),
         avgDurationMs: average(architectureRuns.map((run) => run.durationMs)),
         avgTokens: average(architectureRuns.map((run) => run.tokens.total)),
         passRate:
@@ -1176,7 +1326,13 @@ function buildHistoricalOverview(
 ): HistoricalOverview {
   const totalRuns = runs.length;
   const averageScore = totalRuns
-    ? average(runs.map((run) => run.quality.rubricScore * 100))
+    ? average(runs.map((run) => getCompositeScore(run) * 100))
+    : 0;
+  const averageJudgeScore = totalRuns
+    ? average(runs.map((run) => (run.quality.rubricScore ?? 0) * 100))
+    : 0;
+  const averageCriteriaCoverage = totalRuns
+    ? average(runs.map((run) => getCriteriaCoverage(run) * 100))
     : 0;
   const passRate = totalRuns
     ? (runs.filter((run) => run.outcome === "pass").length / totalRuns) * 100
@@ -1189,6 +1345,8 @@ function buildHistoricalOverview(
   return {
     totalRuns,
     averageScore,
+    averageJudgeScore,
+    averageCriteriaCoverage,
     passRate,
     totalTokens,
     bestArchitecture,
@@ -1217,7 +1375,10 @@ function buildLiveComparisonData(liveRuns: Record<string, LiveRunState>) {
       status: run.status,
       cpuPeakPct: run.metrics.cpuPeakPct,
       rssPeakMb: run.metrics.rssPeakMb,
-      score: (result?.quality.rubricScore ?? 0) * 100,
+      score: getCompositeScore(result) * 100,
+      judgeScore: (result?.quality.rubricScore ?? 0) * 100,
+      criteriaCoverage: getCriteriaCoverage(result) * 100,
+      confidenceScore: (result?.quality.confidenceScore ?? 0) * 100,
       tokens: tokenMetrics.total ?? 0,
       durationMs: result?.durationMs ?? run.progress.elapsedMs,
       handoffs: result?.coordination.handoffs ?? run.progress.handoffs,
@@ -1225,6 +1386,8 @@ function buildLiveComparisonData(liveRuns: Record<string, LiveRunState>) {
       testsPassed: result?.quality.testsPassed ?? 0,
       testsFailed: result?.quality.testsFailed ?? 0,
       toolCalls: result?.resources.toolCallCount ?? run.progress.toolCalls,
+      verificationMode: result?.quality.verificationMode ?? (result ? "judge_only" : "live"),
+      rationale: result?.quality.rationale,
       outcome: result?.outcome ?? "pending"
     } satisfies LiveComparisonDatum;
   });
@@ -1236,6 +1399,28 @@ function average(values: number[]) {
   }
 
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function getCompositeScore(run?: ExperimentRun | null) {
+  if (!run) {
+    return 0;
+  }
+
+  return run.quality.compositeScore ?? run.quality.rubricScore ?? 0;
+}
+
+function getCriteriaCoverage(run?: ExperimentRun | null) {
+  if (!run) {
+    return 0;
+  }
+
+  const total = run.quality.criteriaTotal ?? 0;
+  const met = run.quality.criteriaMet ?? 0;
+  if (total <= 0) {
+    return run.quality.rubricScore ?? 0;
+  }
+
+  return met / total;
 }
 
 function getArchitectureDefinition(architecture: ArchitectureName) {
@@ -1275,6 +1460,36 @@ function formatStatusLabel(status: LiveRunState["status"]) {
     return "Error";
   }
   return "Idle";
+}
+
+function formatVerificationMode(mode: string) {
+  switch (mode) {
+    case "simulated":
+      return "Simulated";
+    case "judge_only":
+      return "Judge only";
+    case "hybrid":
+      return "Hybrid";
+    case "live":
+      return "Live";
+    default:
+      return mode || "Unknown";
+  }
+}
+
+function formatTaskShape(shape: NonNullable<BenchmarkTaskDefinition["taskShape"]>) {
+  switch (shape) {
+    case "open_ended":
+      return "Open-ended";
+    case "verification":
+      return "Verification";
+    case "parallel":
+      return "Parallel";
+    case "sequential":
+      return "Sequential";
+    case "consensus":
+      return "Consensus";
+  }
 }
 
 function normalizeLiveErrorDetails(
