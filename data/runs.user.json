@@ -1,6 +1,206 @@
 {
   "runs": [
     {
+      "runId": "c6c81c96-8c17-43f6-9e0f-952da03d7613",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "refactor_parser_01",
+      "taskLabel": "Modularizing Legacy Data Pipeline",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T18:26:05.351Z",
+      "durationMs": 135353,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 8376,
+        "output": 6119,
+        "reasoning": 601,
+        "total": 14495
+      },
+      "resources": {
+        "cpuAvgPct": 1.9,
+        "cpuPeakPct": 42,
+        "rssPeakMb": 76.5,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 3,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]### Final Synthesis: Modularizing Legacy Data Pipeline\n\n**Diagnosis**\nThe legacy 5,000-line monolith suffers from high cognitive load, tight coupling, and a lack of fault isolation. The primary tec…"
+    },
+    {
+      "runId": "beffdf1b-5613-4705-a797-3e387b200075",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T18:25:33.035Z",
+      "durationMs": 164202,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "fail",
+      "tokens": {
+        "input": 15363,
+        "output": 11087,
+        "reasoning": 363,
+        "total": 26450
+      },
+      "resources": {
+        "cpuAvgPct": 2,
+        "cpuPeakPct": 44.7,
+        "rssPeakMb": 76.6,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 0,
+        "testsFailed": 0,
+        "rubricScore": 0,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the hybrid run. -> Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: [API Error: Rate limit or connectivity issue. Reverting to fallback for this node.]"
+    },
+    {
+      "runId": "098fcdd2-1179-41d8-b70c-00f969b4e7ed",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "bugfix_auth_01",
+      "taskLabel": "Complex Auth Session Regression",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T18:25:33.034Z",
+      "durationMs": 157340,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 12573,
+        "output": 9887,
+        "reasoning": 622,
+        "total": 22460
+      },
+      "resources": {
+        "cpuAvgPct": 2.1,
+        "cpuPeakPct": 45,
+        "rssPeakMb": 76.6,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary:     **Diagnosis**\nThe bug is a **Temporal Desynchronization** caused by **Client-Side Heuristic Expiry**. The client uses the non-monotonic local system clock (`Date.now()`) to calculate session remaining time. When a device wakes from dee…"
+    },
+    {
+      "runId": "15bfe0b1-1aa5-4352-9e7a-4371e5d464b8",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "analysis_perf_01",
+      "taskLabel": "Distributed System Latency Audit",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T18:24:59.770Z",
+      "durationMs": 135807,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 9319,
+        "output": 6867,
+        "reasoning": 844,
+        "total": 16186
+      },
+      "resources": {
+        "cpuAvgPct": 2.3,
+        "cpuPeakPct": 52,
+        "rssPeakMb": 76.4,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis:**\nThe p99 latency jump is likely a \"compounding bottleneck\" caused by two distinct but related phenomena:\n1.  **mTLS Connection Churn:** The service mesh deployment introduced mutual T…"
+    },
+    {
+      "runId": "39146ea6-f4b3-4f92-bbd5-9dfbb62c5d6d",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "analysis_perf_01",
+      "taskLabel": "Distributed System Latency Audit",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T18:24:59.666Z",
+      "durationMs": 58448,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "pass",
+      "tokens": {
+        "input": 2186,
+        "output": 2539,
+        "reasoning": 536,
+        "total": 4725
+      },
+      "resources": {
+        "cpuAvgPct": 2.1,
+        "cpuPeakPct": 51.8,
+        "rssPeakMb": 66.8,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 4,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Distributed System Latency Audit.\\np99 latency jumped from \"}][{\"thought\":true,\"type\":\"text\",\"text\":\"200ms to 850ms.\\nNew service mesh, global request tracing.\\nHigh contention in\"}][{\"thought\":true,\"…"
+    },
+    {
       "runId": "80957388-6924-433a-99b1-f7a5892206d6",
       "tool": "langgraph-gemini",
       "architecture": "decentralized",

@@ -297,11 +297,12 @@ button {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 132px;
+  min-height: 140px;
   padding: 18px;
   border-radius: 22px;
   border: 1px solid var(--panel-border);
   background: var(--surface-muted);
+  overflow: hidden;
 }
 
 .stat-card strong,
@@ -309,11 +310,14 @@ button {
 .mini-metric strong {
   font-size: 1.2rem;
   line-height: 1.2;
+  word-break: break-word;
 }
 
 .stat-card small {
   color: var(--text-secondary);
   line-height: 1.55;
+  font-size: 0.85rem;
+  word-break: break-word;
 }
 
 .banner {
@@ -370,18 +374,21 @@ button {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 150px;
+  min-height: 160px;
   padding: 22px;
   border-radius: 24px;
   border: 1px solid var(--panel-border);
   background: var(--panel-bg);
   box-shadow: var(--shadow-md);
+  overflow: hidden;
 }
 
 .overview-card p {
   margin: 0;
   color: var(--text-secondary);
   line-height: 1.55;
+  font-size: 0.9rem;
+  word-break: break-word;
 }
 
 .tone-blue {
@@ -755,7 +762,7 @@ input:focus {
 
 .run-card__metrics {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 12px;
 }
 
@@ -767,6 +774,13 @@ input:focus {
   border-radius: 18px;
   border: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  text-align: center;
+}
+
+.mini-metric strong {
+  word-break: break-all;
+  font-size: 1.1rem;
 }
 
 .graph-shell {

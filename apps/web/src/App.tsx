@@ -98,7 +98,7 @@ interface MetricBarChartProps {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
   const [data, setData] = useState<DatasetOverviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -783,6 +783,16 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
         />
       </section>
 
+      <div className="live-run-grid">
+        {comparisonData.map((item) => (
+          <ArchitectureRunCard
+            key={item.architecture}
+            run={liveRuns[item.architecture]!}
+            summary={item}
+          />
+        ))}
+      </div>
+
       <div className="chart-grid">
         <MetricBarChart
           title="Peak CPU"
@@ -836,16 +846,6 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
           valueFormatter={formatCompact}
           axisFormatter={(value) => formatCompact(value)}
         />
-      </div>
-
-      <div className="live-run-grid">
-        {comparisonData.map((item) => (
-          <ArchitectureRunCard
-            key={item.architecture}
-            run={liveRuns[item.architecture]!}
-            summary={item}
-          />
-        ))}
       </div>
     </div>
   );
