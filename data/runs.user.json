@@ -1,6 +1,144 @@
 {
   "runs": [
     {
+      "runId": "c9c841ca-6c5a-4f0f-89e4-edb5d9aacc27",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T22:11:13.262Z",
+      "durationMs": 115147,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 8902,
+        "output": 7638,
+        "reasoning": 1334,
+        "total": 16540
+      },
+      "resources": {
+        "cpuAvgPct": 1.4,
+        "cpuPeakPct": 46.9,
+        "rssPeakMb": 90,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 5,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "..."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]### Final Synthesis: Parallel Vendor Risk Review\n\n**Diagnosis**\nThe task requires a multi-agent orchestration pattern to solve a high-dimensional decision problem. The primary technical challenge i…"
+    },
+    {
+      "runId": "78063a5f-d17f-4e06-96f9-84bb06540b43",
+      "tool": "langgraph-gemini",
+      "architecture": "decentralized",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T22:11:13.263Z",
+      "durationMs": 115132,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 12439,
+        "output": 8522,
+        "reasoning": 938,
+        "total": 20961
+      },
+      "resources": {
+        "cpuAvgPct": 1.4,
+        "cpuPeakPct": 46.9,
+        "rssPeakMb": 90,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 5,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "The response successfully addresses all five checklist criteria. It provides a clear decomposition into four workstreams, details the specific evidence required for each, outlines a robust two-stage synthesis framework to reach a single recommendation, identifies critical unknowns, and establishes a logical connection between the gathered evidence and the final decision-making process."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 1,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Peer C merged the independent proposals. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]### Conflict Analysis: Siloed Decomposition vs. Systemic Synthesis\n\nThe conflict between Peer A and Peer B lies in the **architectural philosophy of the review**. \n\n* **Peer A** proposes a **Siloed…"
+    },
+    {
+      "runId": "654bfc74-f802-4c15-b075-56723ff579ea",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-14T22:11:13.254Z",
+      "durationMs": 55385,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "pass",
+      "tokens": {
+        "input": 2077,
+        "output": 3067,
+        "reasoning": 1185,
+        "total": 5144
+      },
+      "resources": {
+        "cpuAvgPct": 1.9,
+        "cpuPeakPct": 46.9,
+        "rssPeakMb": 90,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 5,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "The response meets all checklist criteria: it decomposes the task into four distinct workstreams, specifies granular evidence for each, proposes a centralized synthesis method (Weighted Decision Matrix), identifies key unknowns (Residual Risks), and provides a clear logic for how evidence leads to a decision (Renew/Renegotiate/Replace)."
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Parallel Vendor Risk Review (Contract Renewal Decision).\\nSecurity Posture,\"}][{\"thought\":true,\"type\":\"text\",\"text\":\" Pricing Trends, Incident History, Integration Cost.\\n\\n        1.  Break into para…"
+    },
+    {
       "runId": "273076b0-5ec5-448d-bc01-49e62a779e54",
       "tool": "langgraph-gemini",
       "architecture": "single",
