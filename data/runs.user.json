@@ -1,6 +1,144 @@
 {
   "runs": [
     {
+      "runId": "9e48e831-5d9e-4218-8472-443c5f05eb38",
+      "tool": "langgraph-gemini",
+      "architecture": "dynamic_swarm",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-17T00:44:44.063Z",
+      "durationMs": 177041,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 5,
+      "outcome": "pass",
+      "tokens": {
+        "input": 14640,
+        "output": 17134,
+        "reasoning": 1479,
+        "total": 31774
+      },
+      "resources": {
+        "cpuAvgPct": 1.4,
+        "cpuPeakPct": 54.3,
+        "rssPeakMb": 90.5,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 8,
+        "testsFailed": 0,
+        "rubricScore": 0.95,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 0.92,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "Dynamic sub-agents adapted perfectly to the multi-faceted problem."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]To perform this audit, I require the **Deployment Manifest** (the intended 14-step sequence), the **Execution Log** (the actual sequence of events and error outputs), and the **Current System State…"
+    },
+    {
+      "runId": "51f05314-d2b7-4547-95e9-3c68e5ff3901",
+      "tool": "langgraph-gemini",
+      "architecture": "decentralized",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-17T00:44:44.063Z",
+      "durationMs": 145049,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "partial",
+      "tokens": {
+        "input": 14690,
+        "output": 9978,
+        "reasoning": 1932,
+        "total": 24668
+      },
+      "resources": {
+        "cpuAvgPct": 1.6,
+        "cpuPeakPct": 54.5,
+        "rssPeakMb": 90.5,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 6,
+        "testsFailed": 1,
+        "rubricScore": 0.79,
+        "regressionCount": 1,
+        "criteriaMet": 3,
+        "criteriaTotal": 5,
+        "confidenceScore": 0.7,
+        "compositeScore": 0.7,
+        "verificationMode": "judge_only",
+        "rationale": "Independent peers increased idea diversity but also merge overhead."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 1,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Peer C merged the independent proposals. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis:**\nThe system is in a **\"Ghost State\" Divergence**. The failure is not a simple \"step failed\" scenario, but a mismatch between the **Control Plane** (orchestration logs reporting failur…"
+    },
+    {
+      "runId": "89f309fd-9e26-4248-a319-2d798aca1d9d",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-17T00:44:44.057Z",
+      "durationMs": 80772,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "partial",
+      "tokens": {
+        "input": 3686,
+        "output": 4515,
+        "reasoning": 1294,
+        "total": 8201
+      },
+      "resources": {
+        "cpuAvgPct": 2,
+        "cpuPeakPct": 57.3,
+        "rssPeakMb": 90.5,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 6,
+        "testsFailed": 1,
+        "rubricScore": 0.74,
+        "regressionCount": 1,
+        "criteriaMet": 3,
+        "criteriaTotal": 5,
+        "confidenceScore": 0.68,
+        "compositeScore": 0.6,
+        "verificationMode": "judge_only",
+        "rationale": "Single-agent run covered the basics but missed one edge case."
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Sequential Release Recovery Plan.\\nA 14-step migration failed\"}][{\"thought\":true,\"type\":\"text\",\"text\":\" midway. Dependencies are strict. Partial changes are live.\\n\\n        1.  Reconstruct current st…"
+    },
+    {
       "runId": "c9c841ca-6c5a-4f0f-89e4-edb5d9aacc27",
       "tool": "langgraph-gemini",
       "architecture": "centralized",
