@@ -23,6 +23,7 @@ import {
 import { AnimatedAgentGraph } from "./AnimatedAgentGraph.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+const IS_PROD = import.meta.env.VITE_IS_PROD_DEPLOYMENT === "true";
 const DEFAULT_ARCHITECTURES: ArchitectureName[] = ["single", "centralized", "hybrid"];
 const ARCH_COLORS = Object.fromEntries(
   ARCHITECTURE_DEFINITIONS.map((definition) => [definition.name, definition.color])
@@ -187,11 +188,15 @@ export default function App() {
   };
 
   const toggleArchitecture = (architecture: ArchitectureName) => {
-    setSelectedArches((current) =>
-      current.includes(architecture)
-        ? current.filter((value) => value !== architecture)
-        : [...current, architecture]
-    );
+    setSelectedArches((current) => {
+      if (current.includes(architecture)) {
+        return current.filter((value) => value !== architecture);
+      }
+      if (IS_PROD && current.length >= 3) {
+        return current;
+      }
+      return [...current, architecture];
+    });
   };
 
   const handleRunComparison = () => {
@@ -551,22 +556,34 @@ export default function App() {
             <div className="selection-header">
               <h3>Architecture selection</h3>
               <p>Select the architectures included in this benchmark run.</p>
+              {IS_PROD && (
+                <div style={{ marginTop: "12px", padding: "12px", borderRadius: "12px", background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.2)", color: "var(--warning-color)", fontSize: "0.9rem" }}>
+                  <strong>Demo Limit:</strong> In the public preview, you can select up to 3 architectures at once to preserve server resources.
+                </div>
+              )}
             </div>
 
             <div className="architecture-selector-grid">
               {ARCHITECTURE_DEFINITIONS.map((architecture) => {
                 const isActive = selectedArches.includes(architecture.name);
+                const isLimitReached = IS_PROD && selectedArches.length >= 3;
+                const isDisabled = !isActive && isLimitReached;
                 return (
                   <button
                     key={architecture.name}
                     type="button"
                     className={`architecture-option ${isActive ? "active" : ""}`}
-                    style={{ "--card-accent": architecture.color } as CSSProperties}
-                    onClick={() => toggleArchitecture(architecture.name)}
+                    style={{ 
+                      "--card-accent": architecture.color,
+                      opacity: isDisabled ? 0.4 : 1,
+                      cursor: isDisabled ? "not-allowed" : "pointer"
+                    } as CSSProperties}
+                    onClick={() => !isDisabled && toggleArchitecture(architecture.name)}
+                    disabled={isDisabled}
                   >
                     <div className="architecture-option__topline">
                       <span>{architecture.label}</span>
-                      <strong>{isActive ? "Selected" : "Available"}</strong>
+                      <strong>{isActive ? "Selected" : isDisabled ? "Limit Reached" : "Available"}</strong>
                     </div>
                     <p>{architecture.summary}</p>
                     <small>{architecture.tradeoff}</small>
@@ -612,17 +629,19 @@ export default function App() {
         </section>
       )}
 
-      <section className="history-toggle-row">
-        <button
-          type="button"
-          className="history-toggle"
-          onClick={() => setShowHistory((current) => !current)}
-        >
-          {showHistory ? "Hide history" : "Show history"}
-        </button>
-      </section>
+      {!IS_PROD && (
+        <section className="history-toggle-row">
+          <button
+            type="button"
+            className="history-toggle"
+            onClick={() => setShowHistory((current) => !current)}
+          >
+            {showHistory ? "Hide history" : "Show history"}
+          </button>
+        </section>
+      )}
 
-      {showHistory && (
+      {showHistory && !IS_PROD && (
         <>
           <section className="summary-strip">
             <OverviewCard
