@@ -1,182 +1,132 @@
-# Agent Architecture Evaluation & Metrics
+# Agent Visibility Project
 
-A real-time benchmarking platform for comparing multi-agent LLM architectures. Run the same task across multiple agent topologies simultaneously and observe token usage, execution traces, coordination patterns, and post-run evaluation scores — all live, as they happen.
+Inspired by Google's paper, [Towards a Science of Scaling Agent Systems: When and Why Agent Systems Work](https://research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/), this project explores how different agentic architectures behave on benchmark tasks and makes their tradeoffs visible through a live dashboard.
 
-Inspired by the Google Research paper: [Towards a Science of Scaling Agent Systems: When and Why Agent Systems Work](https://research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/) (Kim & Liu, 2026).
-
----
+It combines a small benchmarking API, a React visualization layer, shared experiment schemas, and JSON-backed run storage so you can compare architectures like `single`, `centralized`, `hybrid`, `decentralized`, and `dynamic_swarm` across quality, latency, token usage, and coordination overhead.
 
 ## What It Does
 
-- **Parallel benchmark execution** — run up to 5 agent architectures side-by-side on the same task
-- **Real-time streaming** — token counts, node traces, and agent handoffs update live via Server-Sent Events
-- **Post-run LLM evaluation** — an independent judge model scores quality, criteria coverage, and confidence after each run
-- **Interactive architecture graphs** — animated node graphs visualize the agent topology and execution path in real time
-- **Comparative bar charts** — side-by-side charts across architectures for judge score, criteria coverage, token usage, agent handoffs, and model calls
-- **Light / dark theme** — toggle between themes with a blue-accented glassmorphic design system
+- Runs or replays benchmark tasks across multiple agent architectures
+- Streams live execution progress from the API to the UI
+- Visualizes architecture behavior, handoffs, token usage, and resource metrics
+- Stores sample and user-generated runs in JSON for easy iteration
+- Uses a LangGraph + Gemini runner for live benchmark experiments
 
----
+## Architecture
 
-## Architectures Supported
+```mermaid
+flowchart LR
+    U[User] --> W[React Dashboard<br/>apps/web]
+    W -->|REST + SSE| A[Express API<br/>apps/api]
+    A --> T[Benchmark Task Catalog]
+    A --> R[LangGraph Runner]
+    A --> D[(data/runs.sample.json<br/>data/runs.user.json)]
+    R --> G[Gemini Model]
+    A <--> S[Shared Types + Catalog<br/>packages/shared]
+    W <--> S
+```
 
-| Architecture | Description |
-|---|---|
-| `single` | One agent handles the full task sequentially |
-| `centralized` | Orchestrator delegates bounded subtasks to specialist workers and merges results |
-| `hybrid` | Orchestrator + specialists + reviewer; combines hierarchical control with peer refinement |
-| `decentralized` | Peer agents debate and cross-validate; no central orchestrator |
-| `dynamic_swarm` | Runtime-adaptive topology; agent roles and connections form based on task structure |
+More on the agent-pattern side of the project lives in [AGENTIC_ARCHITECTURES.md](./AGENTIC_ARCHITECTURES.md).
 
----
+## Tech Used
 
-## Metrics Tracked
+- TypeScript across the full workspace
+- React 19 + Vite for the dashboard
+- Express for the API
+- LangGraph + `@langchain/google` for orchestration and model execution
+- Recharts for performance charts
+- `@xyflow/react` + Framer Motion for animated agent graphs
+- Zod for runtime validation
+- JSON files for persisted benchmark runs
 
-### In-Task Execution (live, streaming)
-| Metric | Description |
-|---|---|
-| Total tokens | Cumulative input + output token count, updating as each node completes |
-| Output / input ratio | Generated tokens ÷ prompt tokens — proxy for agent verbosity |
-| Duration | Wall-clock time from first node to last |
-| Model calls | Total LLM invocations across all nodes |
-| Agent handoffs | Inter-agent delegation events (coordination overhead) |
+## Local Deployment
 
-### Post-Completion Evaluation (computed after run)
-| Metric | Description |
-|---|---|
-| Judge score | Holistic rubric scored 0–100% by an independent evaluator model |
-| Criteria coverage | Fraction of the task's evaluation checklist satisfied |
-| Evaluator confidence | The judge model's self-reported certainty in its assessment |
-| Test reliability | Automated test pass rate (where applicable) |
-| Outcome | Binary classification: `pass`, `partial`, or `fail` |
+### Prerequisites
 
----
+- Node.js 20+
+- npm
+- A Gemini or Google API key if you want live benchmark execution
 
-## Stack
+### Setup
 
-| Layer | Technology |
-|---|---|
-| Frontend | React + Vite + TypeScript |
-| Backend | Node.js + Express + TypeScript |
-| Orchestration | LangGraph JS (`@langchain/langgraph`) |
-| Model | Google Gemini (via `@langchain/google`) |
-| Graph visualization | React Flow |
-| Charts | Recharts |
-| Shared types | `packages/shared` monorepo package |
-
----
-
-## Quickstart
-
-### 1. Install dependencies
+1. Install dependencies:
 
 ```bash
 npm install
 ```
 
-### 2. Configure your API key
-
-Copy `.env.example` to `.env` and set your Gemini API key:
+2. Create your local environment file from the example:
 
 ```bash
-cp .env.example .env
-# then edit .env:
-GEMINI_API_KEY=your_key_here
+cp .env.example .env.local
 ```
 
-> If no key is provided, the runner falls back to a clearly-labeled **simulated mode** so the dashboard remains functional for UI development.
+3. Add at least one of these keys to `.env.local`:
 
-### 3. Start the API server
+```bash
+GEMINI_API_KEY=your_key_here
+# or
+GOOGLE_API_KEY=your_key_here
+```
+
+4. Optional frontend flags:
+
+```bash
+VITE_IS_PROD_DEPLOYMENT=false
+VITE_API_BASE_URL=
+```
+
+`VITE_API_BASE_URL` can stay empty for local development because Vite proxies `/api` and `/health` to `http://localhost:4000`.
+
+### Run Locally
+
+Start the API in one terminal:
 
 ```bash
 npm run dev:api
-# Runs on http://localhost:3001
 ```
 
-### 4. Start the dashboard
+Start the web app in a second terminal:
 
 ```bash
 npm run dev:web
-# Runs on http://localhost:5173
 ```
 
----
+Then open:
 
-## Project Structure
+- Dashboard: `http://localhost:5173`
+- API health check: `http://localhost:4000/health`
 
+### Build
+
+```bash
+npm run build
 ```
+
+### Typecheck
+
+```bash
+npm run typecheck
+```
+
+## Directory Structure
+
+```text
 agent-visibility-project/
 ├── apps/
-│   ├── api/
-│   │   └── src/
-│   │       ├── index.ts            # Express server + SSE streaming endpoint
-│   │       ├── langgraphRunner.ts  # LangGraph orchestration for all 5 architectures
-│   │       ├── tasks.ts            # Benchmark task definitions
-│   │       └── storage.ts          # JSON-based run persistence
-│   └── web/
-│       └── src/
-│           ├── App.tsx             # Dashboard UI, live state management, charts
-│           ├── AnimatedAgentGraph.tsx  # React Flow architecture graph component
-│           └── styles.css          # Design system (glassmorphic, blue-accented)
+│   ├── api/                 # Express API, benchmark routes, live runner, storage hooks
+│   └── web/                 # React + Vite dashboard and animated architecture views
 ├── packages/
-│   └── shared/
-│       └── src/
-│           └── types.ts            # Shared TypeScript types (ExperimentRun, LiveUpdate, etc.)
+│   └── shared/              # Shared types, architecture catalog, tool definitions
 ├── data/
-│   ├── runs.sample.json            # Seeded sample dataset for UI development
-│   └── runs.user.json              # Persisted live benchmark runs
-├── BENCHMARK_METRICS_GUIDE.md      # Full metric definitions and calculation formulas
-└── .env.example
+│   ├── runs.sample.json     # Seed/sample benchmark dataset
+│   └── runs.user.json       # Locally persisted live benchmark runs
+├── .env.example             # Example environment variables
+└── AGENTIC_ARCHITECTURES.md # Agent-pattern notes and diagrams
 ```
 
----
+## Notes
 
-## How the Benchmark Runner Works
-
-Each architecture is implemented as a distinct **LangGraph state machine**:
-
-- **Single**: `planner → researcher → implementer → reviewer`
-- **Centralized**: `orchestrator → [specialist_A, specialist_B, specialist_C] → synthesizer`
-- **Hybrid**: `orchestrator → [researcher, implementer] → reviewer → synthesizer`
-- **Decentralized**: `agent_A ↔ agent_B ↔ agent_C` (peer debate, no central orchestrator)
-- **Dynamic Swarm**: orchestrator dynamically spawns and routes to specialist nodes at runtime
-
-Runs stream progress via **Server-Sent Events** (`/api/benchmark/stream`). The frontend consumes this stream and updates charts, graphs, and token counters in real time.
-
-Post-run, an independent **judge node** evaluates the final answer against the task's evaluation criteria and emits a structured score.
-
----
-
-## Benchmark Tasks
-
-Pre-built task categories:
-
-| Category | Examples |
-|---|---|
-| `bugfix` | Fix a broken auth function, debug an async race condition |
-| `refactor` | Decompose a monolithic module, apply a design pattern |
-| `analysis` | Summarize a codebase, identify performance bottlenecks |
-
-Tasks define: prompt, evaluation criteria checklist, expected best architecture, and task shape (`sequential`, `parallel`, `verification`, `consensus`, `open_ended`).
-
-Custom tasks can be entered directly in the dashboard.
-
----
-
-## Research Context
-
-This platform operationalizes the key measurements from [Kim & Liu (2026)](https://arxiv.org/abs/2512.08296):
-
-- **Task Success Rate** — tracked as `outcome` (pass/partial/fail) per run
-- **Coordination Overhead** — tracked as agent handoffs and model calls
-- **Architecture-specific tradeoffs** — the paper found centralized systems contain error amplification best (4.4×) while independent systems can amplify errors up to 17.2×; parallel tasks benefit most from multi-agent coordination (+81% on Finance-Agent), while sequential tasks degrade (-70% on PlanCraft)
-
-The dashboard does **not** use an invented composite score — all displayed metrics are either directly measured or produced by the evaluator model.
-
----
-
-## Branches
-
-| Branch | Purpose |
-|---|---|
-| `main` | Stable, current release |
-| `dev` | Active development |
+- The API merges sample runs with locally observed runs when building the overview payload.
+- Live comparisons are streamed with Server-Sent Events from `/api/benchmark-stream`.
+- If no API key is configured, the project can still be useful as a visualization shell for sample data.
