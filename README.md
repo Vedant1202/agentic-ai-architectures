@@ -1,5 +1,7 @@
 # Agent Visibility Project
 
+**Live Demo**: [https://agentic-ai-architectures-web.vercel.app/](https://agentic-ai-architectures-web.vercel.app/)
+
 Inspired by Google's paper, [Towards a Science of Scaling Agent Systems: When and Why Agent Systems Work](https://research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/), this project explores how different agentic architectures behave on benchmark tasks and makes their tradeoffs visible through a live dashboard.
 
 It combines a small benchmarking API, a React visualization layer, shared experiment schemas, and JSON-backed run storage so you can compare architectures like `single`, `centralized`, `hybrid`, `decentralized`, and `dynamic_swarm` across quality, latency, token usage, and coordination overhead.
