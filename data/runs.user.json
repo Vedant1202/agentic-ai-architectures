@@ -1,6 +1,144 @@
 {
   "runs": [
     {
+      "runId": "d8ff61cd-5645-4212-876e-22ea11287357",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-17T19:34:22.851Z",
+      "durationMs": 143133,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 12593,
+        "output": 10046,
+        "reasoning": 1749,
+        "total": 22639
+      },
+      "resources": {
+        "cpuAvgPct": 1.5,
+        "cpuPeakPct": 43,
+        "rssPeakMb": 88.7,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.92,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 0.9,
+        "compositeScore": 0.9,
+        "verificationMode": "judge_only",
+        "rationale": "Verifier feedback tightened the final plan and reduced blind spots."
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the hybrid run. -> Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]The provided recovery plan is logically sound and follows a professional \"stabilize-then-re-attempt\" pattern. It correctly identifies that a \"roll-forward\" attempt on a broken state is dangerous an…"
+    },
+    {
+      "runId": "dab09c7f-0496-4581-b04e-5201db75e568",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-17T19:34:22.842Z",
+      "durationMs": 113008,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "fail",
+      "tokens": {
+        "input": 8079,
+        "output": 7153,
+        "reasoning": 0,
+        "total": 15232
+      },
+      "resources": {
+        "cpuAvgPct": 1.8,
+        "cpuPeakPct": 44,
+        "rssPeakMb": 88.7,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 0,
+        "testsFailed": 5,
+        "rubricScore": 0,
+        "regressionCount": 0,
+        "criteriaMet": 0,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 0.2,
+        "verificationMode": "judge_only",
+        "rationale": "The answer provided is a meta-response/template rather than a solution to a specific task. The user provided the 'Task' description but did not provide the actual 'failed sequence' data (the logs or the 14 steps) to be evaluated. Consequently, the model could not reconstruct a real state, identify a real invalid transition, or provide a real recovery plan. It instead provided a 'demonstration' of how it would respond to a hypothetical scenario. Since no actual task data was processed, none of the checklist criteria could be met."
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Sequential Release Recovery Plan.\\nA 14-step migration failed\"}][{\"thought\":true,\"type\":\"text\",\"text\":\" midway. Dependencies are strict. Partial changes are live.\\n\\n        1.  Reconstruct current st…"
+    },
+    {
+      "runId": "82ceefa5-df96-4ab5-9401-98e3213b2fa2",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-17T19:34:22.851Z",
+      "durationMs": 99634,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 8677,
+        "output": 5525,
+        "reasoning": 1293,
+        "total": 14202
+      },
+      "resources": {
+        "cpuAvgPct": 1.9,
+        "cpuPeakPct": 43.1,
+        "rssPeakMb": 88.7,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 5,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 1,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "The response perfectly adheres to all checklist criteria. It reconstructs the state (Steps 1-6 applied, Step 7 failed), identifies the specific invalid transition (Step 6's NULL introduction vs Step 7's NOT NULL constraint), provides a strictly ordered three-phase plan, includes explicit rollback checkpoints for every phase, and defines specific validation checks (SQL queries and schema verification) to be performed before proceeding."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis**\nThe system is in a **Partial Migration/Inconsistent State**. The migration failed at **Step 7 of 14** due to a `ConstraintViolationError`. The root cause is a logical mismatch between…"
+    },
+    {
       "runId": "9e48e831-5d9e-4218-8472-443c5f05eb38",
       "tool": "langgraph-gemini",
       "architecture": "dynamic_swarm",

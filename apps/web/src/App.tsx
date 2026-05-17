@@ -64,7 +64,7 @@ const GUIDED_TOUR_STEPS = [
     target: "postrun",
     title: "Compare post-run evidence",
     body:
-      "Review judge scores, criteria coverage, reliability, efficiency, and charts to decide which architecture belongs in your product."
+      "Review judge scores, criteria coverage, reliability, efficiency, and charts to decide which architecture belongs in your product. Note: These post-run metrics will only be available during evaluation on completion of the run."
   }
 ] satisfies readonly GuidedTourStep[];
 const ARCH_COLORS = Object.fromEntries(
@@ -186,9 +186,11 @@ export default function App() {
     }
 
     hasAutoStartedTour.current = true;
-    window.setTimeout(() => {
-      setActiveTourIndex(0);
-    }, 350);
+    if (localStorage.getItem("agent_tour_phase1_done") !== "true") {
+      window.setTimeout(() => {
+        setActiveTourIndex(0);
+      }, 350);
+    }
   }, [data, loading]);
 
   useEffect(() => {
@@ -268,6 +270,11 @@ export default function App() {
 
   const closeGuidedTour = () => {
     setActiveTourIndex(null);
+    if (activeTourIndex !== null && activeTourIndex <= 2) {
+      localStorage.setItem("agent_tour_phase1_done", "true");
+    } else if (activeTourIndex !== null && activeTourIndex >= 3) {
+      localStorage.setItem("agent_tour_phase2_done", "true");
+    }
   };
 
   const goToPreviousTourStep = () => {
@@ -279,8 +286,17 @@ export default function App() {
       if (current === null) {
         return 0;
       }
+      if (current === 2 && Object.keys(liveRuns).length === 0) {
+        localStorage.setItem("agent_tour_phase1_done", "true");
+        return null;
+      }
       const nextIndex = current + 1;
-      return nextIndex >= GUIDED_TOUR_STEPS.length ? null : nextIndex;
+      if (nextIndex >= GUIDED_TOUR_STEPS.length) {
+        localStorage.setItem("agent_tour_phase1_done", "true");
+        localStorage.setItem("agent_tour_phase2_done", "true");
+        return null;
+      }
+      return nextIndex;
     });
   };
 
@@ -323,6 +339,13 @@ export default function App() {
       };
     });
     setLiveRuns(initialLiveRuns);
+
+    if (localStorage.getItem("agent_tour_phase2_done") !== "true") {
+      localStorage.setItem("agent_tour_phase2_done", "true");
+      setTimeout(() => {
+        setActiveTourIndex(3);
+      }, 500);
+    }
 
     setTimeout(() => {
       graphsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -945,7 +968,7 @@ export default function App() {
         <GuidedTourCard
           step={activeTourStep}
           stepNumber={activeTourIndex + 1}
-          totalSteps={GUIDED_TOUR_STEPS.length}
+          totalSteps={Object.keys(liveRuns).length === 0 && activeTourIndex < 3 ? 3 : GUIDED_TOUR_STEPS.length}
           onPrevious={goToPreviousTourStep}
           onNext={goToNextTourStep}
           onClose={closeGuidedTour}
