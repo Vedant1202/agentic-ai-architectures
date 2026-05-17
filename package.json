@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "scripts": {
+    "start:api": "npm --workspace @agent-visibility/api run start",
     "dev:api": "npm --workspace @agent-visibility/api run dev",
     "dev:web": "npm --workspace @agent-visibility/web run dev",
     "build": "npm --workspace @agent-visibility/shared run build && npm --workspace @agent-visibility/api run build && npm --workspace @agent-visibility/web run build",

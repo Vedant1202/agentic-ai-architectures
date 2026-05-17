@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: agent-visibility-api
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:api
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: GEMINI_API_KEY
+        sync: false
