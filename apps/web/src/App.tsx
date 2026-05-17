@@ -22,9 +22,51 @@ import {
 } from "@agent-visibility/shared";
 import { AnimatedAgentGraph } from "./AnimatedAgentGraph.js";
 
+type TourTarget = "intro" | "prompt" | "architectures" | "live" | "postrun";
+
+interface GuidedTourStep {
+  target: TourTarget;
+  title: string;
+  body: string;
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 const IS_PROD = import.meta.env.VITE_IS_PROD_DEPLOYMENT === "true";
 const DEFAULT_ARCHITECTURES: ArchitectureName[] = ["single", "centralized", "hybrid"];
+const PAPER_URL =
+  "https://research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/";
+const GUIDED_TOUR_STEPS = [
+  {
+    target: "intro",
+    title: "Start with the decision",
+    body:
+      "Inspired by Google Research's agent scaling paper, this project treats architecture as a product decision: test the task shape, then compare quality, cost, latency, coordination, and reliability."
+  },
+  {
+    target: "prompt",
+    title: "Choose or write a task",
+    body:
+      "Enter your own prompt or select a preset to compare how single-agent, centralized, hybrid, peer, and swarm patterns behave."
+  },
+  {
+    target: "architectures",
+    title: "Select architectures",
+    body:
+      "Pick the architectures you want to test. Each card explains the task shape where that pattern tends to help or become expensive."
+  },
+  {
+    target: "live",
+    title: "Inspect the live run",
+    body:
+      "After a run starts, the graph cards show AI nodes, streamed traces, token use, model calls, handoffs, runtime, and resource pressure."
+  },
+  {
+    target: "postrun",
+    title: "Compare post-run evidence",
+    body:
+      "Review judge scores, criteria coverage, reliability, efficiency, and charts to decide which architecture belongs in your product."
+  }
+] satisfies readonly GuidedTourStep[];
 const ARCH_COLORS = Object.fromEntries(
   ARCHITECTURE_DEFINITIONS.map((definition) => [definition.name, definition.color])
 ) as Record<ArchitectureName, string>;
@@ -123,7 +165,9 @@ export default function App() {
   const [isComparing, setIsComparing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [liveRuns, setLiveRuns] = useState<Record<string, LiveRunState>>({});
+  const [activeTourIndex, setActiveTourIndex] = useState<number | null>(null);
   const graphsRef = useRef<HTMLElement>(null);
+  const hasAutoStartedTour = useRef(false);
 
   useEffect(() => {
     void loadOverview();
@@ -135,6 +179,34 @@ export default function App() {
       document.documentElement.classList.remove("light-theme-root");
     };
   }, [theme]);
+
+  useEffect(() => {
+    if (!data || loading || hasAutoStartedTour.current) {
+      return;
+    }
+
+    hasAutoStartedTour.current = true;
+    window.setTimeout(() => {
+      setActiveTourIndex(0);
+    }, 350);
+  }, [data, loading]);
+
+  useEffect(() => {
+    if (activeTourIndex === null) {
+      return;
+    }
+
+    const activeStep = GUIDED_TOUR_STEPS[activeTourIndex];
+    if (!activeStep) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      document
+        .querySelector(`[data-tour-target="${activeStep.target}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 60);
+  }, [activeTourIndex]);
 
   async function loadOverview() {
     setError(null);
@@ -182,9 +254,34 @@ export default function App() {
   const comparisonReady =
     selectedArches.length > 0 &&
     (selectedTaskId !== "custom" || customPrompt.trim().length > 0);
+  const activeTourStep =
+    activeTourIndex === null ? null : GUIDED_TOUR_STEPS[activeTourIndex] ?? null;
+  const isTourTarget = (target: TourTarget) => activeTourStep?.target === target;
 
   const toggleTheme = () => {
     setTheme((current) => (current === "light" ? "dark" : "light"));
+  };
+
+  const startGuidedTour = () => {
+    setActiveTourIndex(0);
+  };
+
+  const closeGuidedTour = () => {
+    setActiveTourIndex(null);
+  };
+
+  const goToPreviousTourStep = () => {
+    setActiveTourIndex((current) => (current === null ? 0 : Math.max(0, current - 1)));
+  };
+
+  const goToNextTourStep = () => {
+    setActiveTourIndex((current) => {
+      if (current === null) {
+        return 0;
+      }
+      const nextIndex = current + 1;
+      return nextIndex >= GUIDED_TOUR_STEPS.length ? null : nextIndex;
+    });
   };
 
   const toggleArchitecture = (architecture: ArchitectureName) => {
@@ -420,9 +517,9 @@ export default function App() {
     return (
       <div className="loading-screen">
         <div className="loading-card">
-          <span className="eyebrow">Agent Visibility</span>
-          <h1>Loading benchmark dashboard</h1>
-          <p>Loading the ledger, historical signals, and live runner status.</p>
+          <span className="eyebrow">Architecture comparison</span>
+          <h1>Loading the AI architecture comparison workspace</h1>
+          <p>Loading presets, historical signals, and live runner stack status.</p>
         </div>
       </div>
     );
@@ -432,7 +529,7 @@ export default function App() {
     return (
       <div className="loading-screen">
         <div className="empty-state">
-          <span className="eyebrow">Dashboard unavailable</span>
+          <span className="eyebrow">Workspace unavailable</span>
           <h1>We couldn&apos;t load the experiment data.</h1>
           <p>{error ?? "The API did not return an overview payload."}</p>
           <button className="theme-toggle" onClick={() => void loadOverview()}>
@@ -444,61 +541,74 @@ export default function App() {
   }
 
   return (
-    <div className="page-shell">
-      <div className="page-orb orb-a" />
-      <div className="page-orb orb-b" />
-      <div className="page-orb orb-c" />
+    <div className={`page-shell ${activeTourStep ? "tour-is-active" : ""}`}>
+      <header className="app-navbar">
+        <div className="app-navbar__brand">
+          <span>the Agentic AI Architecture Comparison</span>
+        </div>
 
-      <header className="hero">
-        <div className="hero-copy">
-          <span className="eyebrow">Agent Visibility 2.5</span>
-          <h1>Benchmark dashboard for agent architecture evaluation.</h1>
+        <div className="app-navbar__stack" aria-label="Runner stack">
+          <span>Runner</span>
+          <strong>{data.runner.label}</strong>
+          <span className={`runner-status ${data.runner.configured ? "is-live" : "is-simulated"}`}>
+            {data.runner.mode === "live" ? "Live" : "Simulated"}
+          </span>
+          <span className="runner-model">{data.runner.model}</span>
+        </div>
+
+        <div className="app-navbar__actions">
+          <button className="tour-launch" type="button" onClick={startGuidedTour}>
+            Guided tour
+          </button>
+          <a className="paper-link" href={PAPER_URL} target="_blank" rel="noreferrer">
+            Paper
+          </a>
+          <button className="theme-toggle" onClick={toggleTheme}>
+            {theme === "light" ? "Dark" : "Light"}
+          </button>
+        </div>
+      </header>
+
+      <section
+        className={`project-intro ${isTourTarget("intro") ? "tour-highlight" : ""}`}
+        data-tour-target="intro"
+      >
+        <div>
+          <span className="eyebrow">Architecture comparison</span>
+          <h1>the Agentic AI Architecture Comparison project</h1>
           <p>
-            Compare quality, latency, token usage, and coordination behavior across
-            agent architectures in one interface.
+            Test your internal AI architecture against prompts and presets, then compare
+            how task shape changes performance, efficiency, reliability, and product fit.
           </p>
-
-          <div className="hero-actions">
-            <button className="theme-toggle" onClick={toggleTheme}>
-              {theme === "light" ? "Switch to dark" : "Switch to light"}
-            </button>
-            <span className={`status-pill ${data.runner.configured ? "is-live" : "is-simulated"}`}>
-              {data.runner.configured ? "Live runner available" : "Simulation mode"}
-            </span>
+          <p>
+            The motivation comes from Google Research&apos;s work on when and why agent
+            systems scale: architecture is not decoration. It changes handoffs, model
+            calls, latency, verification quality, failure modes, and ultimately whether a
+            product should ship a single-agent flow, a coordinator, a verifier, or an
+            adaptive swarm.
+          </p>
+          <p>
+            Testing metrics matters because the best architecture for a demo can be the
+            wrong one for production. Use the live and post-run scores to decide where
+            extra coordination improves outcomes and where it only adds cost.
+          </p>
+          <div className="project-intro__actions">
+            <a className="inline-paper-link" href={PAPER_URL} target="_blank" rel="noreferrer">
+              Read the inspiration paper by Google Research
+            </a>
           </div>
         </div>
 
-        <aside className="hero-surface">
-          <div className="hero-surface__topline">
-            <span className="hero-surface__label">Runner stack</span>
-            <strong>{data.runner.label}</strong>
-            <p>{data.runner.summary}</p>
-          </div>
-
-          <div className="hero-stat-grid">
-            <StatCard
-              label="Model"
-              value={data.runner.model}
-              detail={data.mode === "sample" ? "Sample ledger loaded" : "Live-ready benchmark surface"}
-            />
-            <StatCard
-              label="Experiments"
-              value={historicalOverview.totalRuns.toString()}
-              detail="Runs persisted in the ledger"
-            />
-            <StatCard
-              label="Avg. Index"
-              value={formatPercent(historicalOverview.averageScore)}
-              detail={`Judge ${formatPercent(historicalOverview.averageJudgeScore)} • Criteria ${formatPercent(historicalOverview.averageCriteriaCoverage)}`}
-            />
-            <StatCard
-              label="Pass Rate"
-              value={formatPercent(historicalOverview.passRate)}
-              detail="Share of runs that fully passed"
-            />
+        <aside className="runner-summary">
+          <span>Current runner stack</span>
+          <strong>{data.runner.label}</strong>
+          <p>{data.runner.summary}</p>
+          <div className="runner-summary__meta">
+            <span>{historicalOverview.totalRuns} runs</span>
+            <span>{data.runner.configured ? "Live runner available" : "Simulation mode"}</span>
           </div>
         </aside>
-      </header>
+      </section>
 
       {error && (
         <div className="banner">
@@ -512,16 +622,20 @@ export default function App() {
       <section className="panel panel-spacious">
         <div className="panel-header">
           <div>
-            <span className="eyebrow">Benchmark Configuration</span>
-            <h2>Run comparative benchmark</h2>
+            <span className="eyebrow">Task-shape testing</span>
+            <h2>Run an architecture comparison</h2>
             <p>
-              Select a task and compare the chosen architectures in parallel.
+              Select a preset or enter your own prompt, then compare the chosen
+              architectures in parallel.
             </p>
           </div>
         </div>
 
         <div className="control-layout">
-          <div className="control-column">
+          <div
+            className={`control-column ${isTourTarget("prompt") ? "tour-highlight" : ""}`}
+            data-tour-target="prompt"
+          >
             <div className="input-group">
               <label htmlFor="task-select">Benchmark task</label>
               <select
@@ -552,10 +666,13 @@ export default function App() {
             <TaskPreview task={selectedTask} customPrompt={customPrompt} />
           </div>
 
-          <div className="selection-column">
+          <div
+            className={`selection-column ${isTourTarget("architectures") ? "tour-highlight" : ""}`}
+            data-tour-target="architectures"
+          >
             <div className="selection-header">
               <h3>Architecture selection</h3>
-              <p>Select the architectures included in this benchmark run.</p>
+              <p>Select the architectures to test for quality, coordination cost, and product fit.</p>
               {IS_PROD && (
                 <div style={{ marginTop: "12px", padding: "12px", borderRadius: "12px", background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.2)", color: "var(--warning-color)", fontSize: "0.9rem" }}>
                   <strong>Demo Limit:</strong> In the public preview, you can select up to 3 architectures at once to preserve server resources.
@@ -608,12 +725,24 @@ export default function App() {
                 {isComparing ? "Running benchmark..." : "Run benchmark"}
               </button>
             </div>
+
+            <div
+              className={`metrics-guide ${isTourTarget("live") ? "tour-highlight" : ""}`}
+              data-tour-target="live"
+            >
+              <span>During-run metrics</span>
+              <p>Live graph cards appear here after a run starts, with node traces and resource signals.</p>
+            </div>
           </div>
         </div>
       </section>
 
       {Object.keys(liveRuns).length > 0 && (
-        <section ref={graphsRef} className="panel panel-spacious">
+        <section
+          ref={graphsRef}
+          className={`panel panel-spacious ${isTourTarget("live") ? "tour-highlight" : ""}`}
+          data-tour-target="live"
+        >
           <div className="panel-header">
             <div>
               <span className="eyebrow">Live Benchmark Results</span>
@@ -811,6 +940,65 @@ export default function App() {
           </section>
         </>
       )}
+
+      {activeTourStep && activeTourIndex !== null && (
+        <GuidedTourCard
+          step={activeTourStep}
+          stepNumber={activeTourIndex + 1}
+          totalSteps={GUIDED_TOUR_STEPS.length}
+          onPrevious={goToPreviousTourStep}
+          onNext={goToNextTourStep}
+          onClose={closeGuidedTour}
+        />
+      )}
+    </div>
+  );
+}
+
+function GuidedTourCard({
+  step,
+  stepNumber,
+  totalSteps,
+  onPrevious,
+  onNext,
+  onClose
+}: {
+  step: GuidedTourStep;
+  stepNumber: number;
+  totalSteps: number;
+  onPrevious: () => void;
+  onNext: () => void;
+  onClose: () => void;
+}) {
+  const isFirstStep = stepNumber === 1;
+  const isLastStep = stepNumber === totalSteps;
+
+  return (
+    <div className="tour-card" role="dialog" aria-modal="false" aria-labelledby="tour-card-title">
+      <div className="tour-card__topline">
+        <span>Guided tour</span>
+        <button type="button" className="tour-card__close" onClick={onClose} aria-label="Close tour">
+          Close
+        </button>
+      </div>
+      <div className="tour-card__progress">
+        <span>
+          {stepNumber} of {totalSteps}
+        </span>
+        <div>
+          <i style={{ width: `${(stepNumber / totalSteps) * 100}%` }} />
+        </div>
+      </div>
+      <h2 id="tour-card-title">{step.title}</h2>
+      <p>{step.body}</p>
+      <div className="tour-card__actions">
+        <button type="button" className="text-button" onClick={onPrevious} disabled={isFirstStep}>
+          Back
+        </button>
+        <button type="button" className="run-btn" onClick={onNext}>
+          {isLastStep ? "Finish tour" : "Next"}
+        </button>
+      </div>
     </div>
   );
 }

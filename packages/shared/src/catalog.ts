@@ -37,36 +37,36 @@ export const ARCHITECTURE_DEFINITIONS: ArchitectureDefinition[] = [
   {
     name: "single",
     label: "Single Agent",
-    summary: "One agent owns the full loop from understanding through implementation.",
-    tradeoff: "Lowest coordination cost, but can stall on search-heavy or multi-file work.",
+    summary: "One agent keeps the full reasoning chain, context, and action loop in one place.",
+    tradeoff: "Best for strict sequential tasks where coordination overhead would fragment the work.",
     color: "#f97316"
   },
   {
     name: "centralized",
     label: "Centralized",
-    summary: "A coordinator delegates bounded tasks to workers, then merges the results.",
-    tradeoff: "Reliable control surface, with moderate token overhead.",
+    summary: "A coordinator decomposes the task, delegates parallel work, and synthesizes one answer.",
+    tradeoff: "Strong fit for decomposable workstreams, with a manageable orchestration tax.",
     color: "#0f766e"
   },
   {
     name: "hybrid",
     label: "Hybrid",
-    summary: "A coordinator uses specialists plus a reviewer or verifier before final output.",
-    tradeoff: "Often the best quality, but with more orchestration work.",
+    summary: "A coordinator uses specialists, then routes outputs through review or verification.",
+    tradeoff: "Useful when independent checks improve reliability enough to justify extra tokens.",
     color: "#2563eb"
   },
   {
     name: "decentralized",
     label: "Decentralized",
-    summary: "Multiple workers act like peers and synchronize through shared summaries or state.",
-    tradeoff: "Great for experiments, but higher conflict and coordination overhead.",
+    summary: "Peer agents reason from different positions and negotiate toward a shared result.",
+    tradeoff: "Useful for consensus-heavy work, but communication can amplify cost and conflict.",
     color: "#7c3aed"
   },
   {
     name: "dynamic_swarm",
     label: "Dynamic Swarm",
-    summary: "A manager node dynamically assesses the task and spawns specialized sub-agents on the fly.",
-    tradeoff: "Most adaptive and fluid, but token-heavy due to parallel sub-agent streams.",
+    summary: "A manager adapts mid-run and spawns specialists as the task reveals new needs.",
+    tradeoff: "Best for open-ended exploration, but expensive in tokens, calls, and tool coordination.",
     color: "#eab308"
   }
 ];

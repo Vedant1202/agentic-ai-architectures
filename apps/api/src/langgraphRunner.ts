@@ -419,7 +419,7 @@ function buildArchitectureGraph(
         .addEdge("finalize", END);
       break;
     case "centralized":
-      builder.addNode("plan", async (state) => {
+      builder.addNode("plan", async (state: typeof GraphState.State) => {
         const pState = await planNode(state);
         onUpdate?.({ architecture, type: "graph_edge", data: { source: "plan", target: "research" } });
         onUpdate?.({ architecture, type: "graph_edge", data: { source: "plan", target: "implement" } });
@@ -445,7 +445,7 @@ function buildArchitectureGraph(
       builder.addEdge(START, "plan").addEdge("plan", "finalize").addEdge("finalize", END);
       break;
     case "hybrid":
-      builder.addNode("plan", async (state) => {
+      builder.addNode("plan", async (state: typeof GraphState.State) => {
         const pState = await planNode(state);
         
         onUpdate?.({ architecture, type: "graph_edge", data: { source: "plan", target: "peer_a" } });
@@ -477,7 +477,7 @@ function buildArchitectureGraph(
       builder.addEdge(START, "plan").addEdge("plan", "finalize").addEdge("finalize", END);
       break;
     case "decentralized":
-      builder.addNode("start_peers", async (state) => {
+      builder.addNode("start_peers", async (state: typeof GraphState.State) => {
         // Assume START is the initiator visually, but we'll just draw peer_a and peer_b as roots
         const [paState, pbState] = await Promise.all([
           peerANode(state),
