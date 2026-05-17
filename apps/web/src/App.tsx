@@ -567,7 +567,7 @@ export default function App() {
     <div className={`page-shell ${activeTourStep ? "tour-is-active" : ""}`}>
       <header className="app-navbar">
         <div className="app-navbar__brand">
-          <span>the Agentic AI Architecture Comparison</span>
+          <span>Agentic AI Architecture Comparison</span>
         </div>
 
         <div className="app-navbar__stack" aria-label="Runner stack">
