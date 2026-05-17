@@ -1,6 +1,52 @@
 {
   "runs": [
     {
+      "runId": "a9eb194b-409a-4d6f-8a9e-77cca9e01da1",
+      "tool": "langgraph-gemini",
+      "architecture": "hybrid",
+      "taskId": "centralized_parallel_01",
+      "taskLabel": "Parallel Vendor Risk Review",
+      "dataset": "observed",
+      "startedAt": "2026-05-17T19:39:43.886Z",
+      "durationMs": 186247,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 4,
+      "outcome": "pass",
+      "tokens": {
+        "input": 11336,
+        "output": 11705,
+        "reasoning": 3520,
+        "total": 23041
+      },
+      "resources": {
+        "cpuAvgPct": 1,
+        "cpuPeakPct": 34.3,
+        "rssPeakMb": 62.9,
+        "childProcessCount": 0,
+        "toolCallCount": 6
+      },
+      "quality": {
+        "testsPassed": 7,
+        "testsFailed": 0,
+        "rubricScore": 0.92,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 0.9,
+        "compositeScore": 0.9,
+        "verificationMode": "judge_only",
+        "rationale": "Verifier feedback tightened the final plan and reduced blind spots."
+      },
+      "coordination": {
+        "handoffs": 4,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 1
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the hybrid run. -> Peer A created an independent solution sketch. -> Peer B created an alternative diagnosis and test lens. -> Verifier reviewed the proposed solution for gaps. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]### Diagnosis\nThe implementation plan is highly effective and professionally structured. It correctly identifies the need for a **decentralized execution/centralized synthesis** model, which is the…"
+    },
+    {
       "runId": "d8ff61cd-5645-4212-876e-22ea11287357",
       "tool": "langgraph-gemini",
       "architecture": "hybrid",
