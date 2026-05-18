@@ -8,9 +8,10 @@ It combines a small benchmarking API, a React visualization layer, shared experi
 
 ## What It Does
 
-- Runs or replays benchmark tasks across multiple agent architectures
-- Streams live execution progress from the API to the UI
-- Visualizes architecture behavior, handoffs, token usage, and resource metrics
+- Enables **parallel execution** of multiple agent architectures for direct live comparison
+- Supports **user-defined custom benchmark tasks** alongside pre-configured tasks
+- Streams live execution progress from the API to a high-density, data-rich UI
+- Visualizes architecture behavior, handoffs, granular evaluation metrics (e.g., Confidence, Test Reliability), and resource metrics
 - Stores sample and user-generated runs in JSON for easy iteration
 - Uses a LangGraph + Gemini runner for live benchmark experiments
 
@@ -78,7 +79,8 @@ VITE_IS_PROD_DEPLOYMENT=false
 VITE_API_BASE_URL=
 ```
 
-`VITE_API_BASE_URL` can stay empty for local development because Vite proxies `/api` and `/health` to `http://localhost:4000`.
+- `VITE_API_BASE_URL` can stay empty for local development because Vite proxies `/api` and `/health` to `http://localhost:4000`.
+- `VITE_IS_PROD_DEPLOYMENT` when set to `true` enforces a concurrency limit (max 3 architectures at a time) to preserve server resources.
 
 ### Run Locally
 
