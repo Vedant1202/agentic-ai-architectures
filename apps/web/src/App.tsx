@@ -1215,7 +1215,7 @@ function ArchitectureRunCard({
             aria-label={`${isGraphExpanded ? "Collapse" : "Expand"} ${summary.label} graph`}
           >
             <span aria-hidden="true">{isGraphExpanded ? "[-]" : "[+]"}</span>
-            {isGraphExpanded ? "Minimize" : "Maximize"}
+            {isGraphExpanded ? "-" : "+"}
           </button>
           <span className={`status-chip status-${summary.status}`}>
             {formatStatusLabel(summary.status)}

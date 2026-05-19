@@ -1,6 +1,52 @@
 {
   "runs": [
     {
+      "runId": "89d297bd-0069-433c-ad8b-8a7f892fd83d",
+      "tool": "langgraph-gemini",
+      "architecture": "centralized",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-19T02:47:41.204Z",
+      "durationMs": 165545,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 3,
+      "outcome": "pass",
+      "tokens": {
+        "input": 6521,
+        "output": 5595,
+        "reasoning": 2389,
+        "total": 12116
+      },
+      "resources": {
+        "cpuAvgPct": 1.3,
+        "cpuPeakPct": 34.8,
+        "rssPeakMb": 65.2,
+        "childProcessCount": 0,
+        "toolCallCount": 5
+      },
+      "quality": {
+        "testsPassed": 5,
+        "testsFailed": 0,
+        "rubricScore": 1,
+        "regressionCount": 0,
+        "criteriaMet": 5,
+        "criteriaTotal": 5,
+        "confidenceScore": 0.95,
+        "compositeScore": 1,
+        "verificationMode": "judge_only",
+        "rationale": "..."
+      },
+      "coordination": {
+        "handoffs": 3,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Planner framed the centralized run. -> Research specialist mapped risks and diagnostics. -> Implementation specialist proposed code and test changes. -> Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"\"}]**Diagnosis**\nThe task requires a high-fidelity orchestration of a complex, state-dependent failure recovery. The core challenge is not just identifying the error, but preventing \"state drift\"—wher…"
+    },
+    {
       "runId": "ddcf09f6-3080-4c9f-9cd5-f9e06eee67c5",
       "tool": "langgraph-gemini",
       "architecture": "single",
