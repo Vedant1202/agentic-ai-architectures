@@ -191,11 +191,15 @@ const nodeTypes = {
 export function AnimatedAgentGraph({
   architecture,
   nodeEvents,
-  dynamicEdges = []
+  dynamicEdges = [],
+  expanded = false,
+  onPaneClick
 }: {
   architecture: ArchitectureName;
   nodeEvents: Record<string, NodeTraceEvent & { streamedText?: string }>;
   dynamicEdges?: { source: string; target: string }[];
+  expanded?: boolean;
+  onPaneClick?: () => void;
 }) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
@@ -316,11 +320,12 @@ export function AnimatedAgentGraph({
       style={{
         position: "relative",
         width: "100%",
-        height: "272px",
+        height: expanded ? "420px" : "272px",
         overflow: "hidden",
         borderRadius: "22px",
         border: "1px solid rgba(148, 163, 184, 0.14)",
-        background: "linear-gradient(180deg, var(--graph-surface-top), var(--graph-surface-bottom))"
+        background: "linear-gradient(180deg, var(--graph-surface-top), var(--graph-surface-bottom))",
+        transition: "height 320ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 180ms ease"
       }}
     >
       <ReactFlow
@@ -328,12 +333,14 @@ export function AnimatedAgentGraph({
         edges={edges}
         nodeTypes={nodeTypes}
         onNodeClick={(_event, node) => {
+          _event.stopPropagation();
           const nodeId = String(node.id);
           const event = nodeEvents[nodeId];
           if (event?.status === "running" || event?.status === "complete" || event?.status === "error") {
             setSelectedNodeId(nodeId);
           }
         }}
+        onPaneClick={onPaneClick}
         fitView
         fitViewOptions={{ padding: 0.28 }}
         zoomOnScroll
@@ -408,7 +415,10 @@ export function AnimatedAgentGraph({
               </div>
 
               <button
-                onClick={() => setSelectedNodeId(null)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setSelectedNodeId(null);
+                }}
                 style={{
                   border: "none",
                   background: "transparent",

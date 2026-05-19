@@ -1056,13 +1056,21 @@ input:focus {
 }
 
 .live-run-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 18px;
+  --run-card-base-width: 340px;
+  --run-card-gap: 18px;
+  --run-card-column-width: max(
+    var(--run-card-base-width),
+    calc((100% - (var(--run-card-gap) * 2)) / 3)
+  );
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--run-card-gap);
   align-items: start;
 }
 
 .run-card {
+  flex: 0 1 var(--run-card-column-width);
+  min-width: min(100%, var(--run-card-base-width));
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1072,10 +1080,61 @@ input:focus {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--card-accent) 6%, transparent), transparent),
     var(--panel-bg);
+  transition:
+    flex-basis 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 220ms ease,
+    box-shadow 260ms ease,
+    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.run-card--wide {
+  flex-basis: min(100%, calc((var(--run-card-column-width) * 2) + var(--run-card-gap)));
+  border-color: color-mix(in srgb, var(--card-accent) 46%, var(--panel-border));
+  box-shadow: 0 24px 54px color-mix(in srgb, var(--card-accent) 16%, transparent);
 }
 
 .run-card.status-running {
   box-shadow: 0 20px 42px color-mix(in srgb, var(--card-accent) 14%, transparent);
+}
+
+.run-card.status-running.run-card--wide {
+  box-shadow: 0 26px 58px color-mix(in srgb, var(--card-accent) 20%, transparent);
+}
+
+.run-card__header-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.graph-expand-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--card-accent) 28%, var(--panel-border));
+  background: color-mix(in srgb, var(--card-accent) 9%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.graph-expand-button:hover,
+.graph-expand-button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--card-accent) 52%, var(--panel-border));
+  background: color-mix(in srgb, var(--card-accent) 15%, transparent);
+  color: var(--text-primary);
+}
+
+.graph-expand-button span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
 }
 
 .status-chip {
@@ -1313,6 +1372,13 @@ input:focus {
 .graph-shell {
   border-radius: 24px;
   overflow: hidden;
+  cursor: zoom-in;
+  transition: box-shadow 240ms ease, transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.graph-shell--expanded {
+  cursor: zoom-out;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-accent) 24%, transparent);
 }
 
 .run-card__snapshot {
@@ -1650,6 +1716,7 @@ input:focus {
   .tour-overview__button {
     justify-self: start;
   }
+
 }
 
 @media (max-width: 640px) {
@@ -1707,5 +1774,15 @@ input:focus {
   .tour-card {
     right: 16px;
     bottom: 16px;
+  }
+
+  .run-card__header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .graph-expand-button {
+    flex: 1 1 180px;
+    justify-content: center;
   }
 }
