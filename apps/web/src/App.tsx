@@ -1028,6 +1028,7 @@ function GuidedTourCard({
 
 function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveRunState> }) {
   const comparisonData = useMemo(() => buildLiveComparisonData(liveRuns), [liveRuns]);
+  const [expandedArchitecture, setExpandedArchitecture] = useState<ArchitectureName | null>(null);
 
   const completedRuns = comparisonData.filter((run) => run.status === "complete");
   const leadingScore = [...completedRuns].sort((left, right) => right.score - left.score)[0] ?? null;
@@ -1038,6 +1039,19 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
     0
   );
   const activeCount = comparisonData.filter((run) => run.status === "running").length;
+
+  useEffect(() => {
+    if (
+      expandedArchitecture &&
+      !comparisonData.some((run) => run.architecture === expandedArchitecture)
+    ) {
+      setExpandedArchitecture(null);
+    }
+  }, [comparisonData, expandedArchitecture]);
+
+  const toggleExpandedArchitecture = (architecture: ArchitectureName) => {
+    setExpandedArchitecture((current) => current === architecture ? null : architecture);
+  };
 
   return (
     <div className="live-dashboard">
@@ -1084,6 +1098,8 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
             key={item.architecture}
             run={liveRuns[item.architecture]!}
             summary={item}
+            isGraphExpanded={expandedArchitecture === item.architecture}
+            onToggleGraphExpanded={() => toggleExpandedArchitecture(item.architecture)}
           />
         ))}
       </div>
@@ -1162,10 +1178,14 @@ function LiveComparativeDashboard({ liveRuns }: { liveRuns: Record<string, LiveR
 
 function ArchitectureRunCard({
   run,
-  summary
+  summary,
+  isGraphExpanded,
+  onToggleGraphExpanded
 }: {
   run: LiveRunState;
   summary: LiveComparisonDatum;
+  isGraphExpanded: boolean;
+  onToggleGraphExpanded: () => void;
 }) {
   const definition = getArchitectureDefinition(summary.architecture);
   const recentTrace = run.trace.slice(-4).reverse();
@@ -1177,7 +1197,7 @@ function ArchitectureRunCard({
 
   return (
     <article
-      className={`run-card status-${summary.status}`}
+      className={`run-card status-${summary.status} ${isGraphExpanded ? "run-card--wide" : ""}`}
       style={{ "--card-accent": summary.color } as CSSProperties}
     >
       <div className="run-card__header">
@@ -1186,9 +1206,21 @@ function ArchitectureRunCard({
           <h3>{summary.label}</h3>
           <p>{definition?.summary}</p>
         </div>
-        <span className={`status-chip status-${summary.status}`}>
-          {formatStatusLabel(summary.status)}
-        </span>
+        <div className="run-card__header-actions">
+          <button
+            type="button"
+            className="graph-expand-button"
+            onClick={onToggleGraphExpanded}
+            aria-pressed={isGraphExpanded}
+            aria-label={`${isGraphExpanded ? "Collapse" : "Expand"} ${summary.label} graph`}
+          >
+            <span aria-hidden="true">{isGraphExpanded ? "[-]" : "[+]"}</span>
+            {isGraphExpanded ? "Minimize" : "Maximize"}
+          </button>
+          <span className={`status-chip status-${summary.status}`}>
+            {formatStatusLabel(summary.status)}
+          </span>
+        </div>
       </div>
 
       {/* Live token count — updates as nodes complete */}
@@ -1206,11 +1238,17 @@ function ArchitectureRunCard({
       </div>
 
       {/* Node graph */}
-      <div className="graph-shell">
+      <div
+        className={`graph-shell ${isGraphExpanded ? "graph-shell--expanded" : ""}`}
+        aria-label={`${summary.label} architecture graph`}
+      >
         <AnimatedAgentGraph
+          key={`${run.architecture}-${isGraphExpanded ? "wide" : "compact"}`}
           architecture={run.architecture}
           nodeEvents={run.nodeEvents}
           dynamicEdges={run.dynamicEdges}
+          expanded={isGraphExpanded}
+          onPaneClick={onToggleGraphExpanded}
         />
       </div>
 

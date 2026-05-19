@@ -1,6 +1,52 @@
 {
   "runs": [
     {
+      "runId": "ddcf09f6-3080-4c9f-9cd5-f9e06eee67c5",
+      "tool": "langgraph-gemini",
+      "architecture": "single",
+      "taskId": "single_sequential_01",
+      "taskLabel": "Sequential Release Recovery Plan",
+      "dataset": "observed",
+      "startedAt": "2026-05-19T02:47:41.200Z",
+      "durationMs": 122279,
+      "modelFamily": "gemma-4-26b-a4b-it",
+      "agentCount": 1,
+      "outcome": "partial",
+      "tokens": {
+        "input": 4633,
+        "output": 5087,
+        "reasoning": 1084,
+        "total": 9720
+      },
+      "resources": {
+        "cpuAvgPct": 1.6,
+        "cpuPeakPct": 35,
+        "rssPeakMb": 65.2,
+        "childProcessCount": 0,
+        "toolCallCount": 2
+      },
+      "quality": {
+        "testsPassed": 6,
+        "testsFailed": 1,
+        "rubricScore": 0.74,
+        "regressionCount": 1,
+        "criteriaMet": 3,
+        "criteriaTotal": 5,
+        "confidenceScore": 0.68,
+        "compositeScore": 0.6,
+        "verificationMode": "judge_only",
+        "rationale": "Single-agent run covered the basics but missed one edge case."
+      },
+      "coordination": {
+        "handoffs": 0,
+        "retries": 0,
+        "mergeConflicts": 0,
+        "reviewLoops": 0
+      },
+      "executionMode": "live",
+      "notes": "Gemini is configured. New benchmark runs will execute live through LangGraph. Trace: Final synthesizer produced the benchmark answer. Summary: [{\"thought\":true,\"type\":\"text\",\"text\":\"Sequential Release Recovery Plan.\\nA 14-step migration failed\"}][{\"thought\":true,\"type\":\"text\",\"text\":\" midway. Dependencies are strict. Partial changes are live.\\n\\n        1.  Reconstruct current st…"
+    },
+    {
       "runId": "a9eb194b-409a-4d6f-8a9e-77cca9e01da1",
       "tool": "langgraph-gemini",
       "architecture": "hybrid",
